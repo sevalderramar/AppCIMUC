@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -78,5 +81,15 @@ internal fun EntidadCatalogoCard(tipo: String, nombre: String, descripcion: Stri
             Text(descripcion, style = MaterialTheme.typography.bodyLarge)
             Text(accion, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
+    }
+}
+
+@Composable
+internal fun AccionPrincipal(texto: String, onClick: () -> Unit, enabled: Boolean = true) {
+    Button(onClick = onClick, enabled = enabled,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), shape = MaterialTheme.shapes.small,
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary)) {
+        Text(texto, style = MaterialTheme.typography.labelLarge)
     }
 }

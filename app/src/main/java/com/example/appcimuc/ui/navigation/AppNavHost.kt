@@ -3,6 +3,8 @@ package com.example.appcimuc.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -31,7 +33,15 @@ import com.example.appcimuc.ui.DetalleIntegranteScreen
 import com.example.appcimuc.ui.DetalleProyectoScreen
 import com.example.appcimuc.ui.ExplorarScreen
 import com.example.appcimuc.ui.HomeRoute
+import com.example.appcimuc.ui.ContactoFormularioScreen
+import com.example.appcimuc.ui.ContactoResumenScreen
+import com.example.appcimuc.ui.ContactoConfirmacionScreen
+import com.example.appcimuc.viewmodel.ContactoViewModel
+import com.example.appcimuc.viewmodel.PasoContacto
 import com.example.appcimuc.viewmodel.MainViewModel
+import com.example.appcimuc.viewmodel.ParticipacionViewModel
+import com.example.appcimuc.viewmodel.TipoParticipacion
+import com.example.appcimuc.ui.ParticipacionModales
 
 @Composable
 fun AppNavHost() {
@@ -108,6 +118,10 @@ fun AppNavHost() {
             composable(Routes.PROYECTO, arguments = listOf(navArgument(Routes.ID) { type = NavType.StringType })) { entry ->
                 val id = entry.arguments?.getString(Routes.ID).orEmpty()
                 val proyecto = mainViewModel.proyecto(id)
+                val participacionFactory = remember(entry) { ParticipacionViewModel.factory(id) }
+                val participacionViewModel: ParticipacionViewModel = viewModel(
+                    viewModelStoreOwner = entry, factory = participacionFactory)
+                val participacion by participacionViewModel.uiState.collectAsState()
                 DetalleProyectoScreen(
                     proyecto = proyecto,
                     categoria = proyecto?.let { mainViewModel.categoria(it.categoriaId) },
@@ -115,8 +129,25 @@ fun AppNavHost() {
                     capacidades = mainViewModel.capacidades(id),
                     onIntegrante = { navController.navigate(Routes.integrante(it)) { launchSingleTop = true } },
                     onCapacidad = { navController.navigate(Routes.capacidad(it)) { launchSingleTop = true } },
+                    onContactar = { proyectoId ->
+                        if (navController.currentDestination?.route == Routes.PROYECTO) {
+                            navController.navigate(Routes.contacto(proyectoId)) { launchSingleTop = true }
+                        }
+                    },
+                    onUnirse = { proyectoId ->
+                        if (proyectoId == id) participacionViewModel.abrir(TipoParticipacion.POSTULACION)
+                    },
+                    onAportar = { proyectoId ->
+                        if (proyectoId == id) participacionViewModel.abrir(TipoParticipacion.APORTE)
+                    },
                     onBack = onBack
                 )
+                ParticipacionModales(estado = participacion,
+                    onCerrar = { teclado?.hide(); foco.clearFocus(); participacionViewModel.cerrar() },
+                    onCampo = participacionViewModel::cambiar,
+                    onEnviar = { tipo ->
+                        if (participacionViewModel.enviar(tipo)) { teclado?.hide(); foco.clearFocus() }
+                    })
             }
             composable(Routes.INTEGRANTE, arguments = listOf(navArgument(Routes.ID) { type = NavType.StringType })) { entry ->
                 val id = entry.arguments?.getString(Routes.ID).orEmpty()
@@ -125,6 +156,58 @@ fun AppNavHost() {
             composable(Routes.CAPACIDAD, arguments = listOf(navArgument(Routes.ID) { type = NavType.StringType })) { entry ->
                 val id = entry.arguments?.getString(Routes.ID).orEmpty()
                 DetalleCapacidadScreen(mainViewModel.capacidad(id), mainViewModel.proyectosDeCapacidad(id), onProyecto, onBack)
+            }
+            composable(Routes.CONTACTO, arguments = listOf(navArgument(Routes.ID) { type = NavType.StringType })) { entry ->
+                val proyectoId = entry.arguments?.getString(Routes.ID).orEmpty()
+                // Alcance explícito de la entrada del flujo, NO de la Activity ni de cada paso.
+                // No hay SavedStateHandle con datos personales ni argumentos de borrador.
+                val factory = remember(entry) { ContactoViewModel.factory(proyectoId) }
+                val contactoViewModel: ContactoViewModel = viewModel(viewModelStoreOwner = entry, factory = factory)
+                val estado by contactoViewModel.uiState.collectAsState()
+                val ocultarTeclado = { teclado?.hide(); foco.clearFocus() }
+                val volverProyecto: () -> Unit = {
+                    // La única entrada anterior al flujo es el detalle que lo abrió.
+                    // La guarda impide que una segunda pulsación quite también ese detalle.
+                    if (navController.currentDestination?.route == Routes.CONTACTO) {
+                        ocultarTeclado()
+                        navController.popBackStack()
+                    }
+                }
+                val editar: () -> Unit = { ocultarTeclado(); contactoViewModel.editar() }
+                BackHandler(enabled = estado.paso != PasoContacto.FORMULARIO) {
+                    if (estado.paso == PasoContacto.RESUMEN) editar() else volverProyecto()
+                }
+                when (estado.paso) {
+                    PasoContacto.FORMULARIO -> ContactoFormularioScreen(
+                        estado = estado,
+                        onNombre = contactoViewModel::cambiarNombre,
+                        onCorreo = contactoViewModel::cambiarCorreo,
+                        onMensaje = contactoViewModel::cambiarMensaje,
+                        onRevisar = { if (contactoViewModel.revisar()) ocultarTeclado() },
+                        onBack = volverProyecto
+                    )
+                    PasoContacto.RESUMEN -> ContactoResumenScreen(
+                        estado = estado, onEditar = editar,
+                        onConfirmar = { ocultarTeclado(); contactoViewModel.confirmar() }
+                    )
+                    PasoContacto.CONFIRMACION -> ContactoConfirmacionScreen(
+                        onProyecto = volverProyecto,
+                        onExplorar = {
+                            if (navController.currentDestination?.route == Routes.CONTACTO) {
+                                ocultarTeclado()
+                                if (!navController.popBackStack(Routes.EXPLORAR, false)) {
+                                    // Entrada desde un destacado de Inicio: reutiliza Explorar si estaba guardado.
+                                    // No guarda ni restaura la entrada del flujo de contacto finalizado.
+                                    navController.navigate(Routes.EXPLORAR) {
+                                        popUpTo(Routes.INICIO)
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }

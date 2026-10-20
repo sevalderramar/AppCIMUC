@@ -193,3 +193,74 @@ Este apartado actualiza el estado vigente: **búsqueda y filtros ya están imple
 Repositorio entrega las listas sintéticas → ViewModel conserva consultas/filtros y calcula resultados → StateFlow publica UiState → Explorar representa controles y listas → callbacks actualizan estado o navegan por IDs al detalle. El guardado Compose mantiene la posición de cada lista; no se envían ni persisten solicitudes.
 
 **Siguiente etapa pendiente:** formulario de contacto, resumen y confirmación simulada. No implementados aquí; registro, aportes y postulaciones siguen fuera del alcance de esta etapa. Sin commits ni push.
+
+## Etapa — Contacto, Resumen y Confirmación simulada (2026-10-20)
+
+Estado vigente: **el recorrido completo del MVP está implementado en código**, incluida la búsqueda de la etapa anterior. Esto no acredita pruebas de interacción de esta nueva versión en dispositivo. Los apartados anteriores son históricos.
+
+### Implementado
+- Detalle conserva título, descripción, categoría, año, estado y relaciones. Representa `imagenRes` si existe, sin estirarla. El modelo actual no tiene recursos asociados: se muestra «Sin recursos disponibles», sin URLs, descargas ni archivos inventados. Contactar no depende de cupos ni postulaciones.
+- «Contactar» abre `contacto/{id}` con el ID codificado del proyecto. ID inexistente: estado «Proyecto no encontrado», sin formulario activo y con regreso. Se preservan todas las rutas de detalles anteriores.
+- Formulario identificado por proyecto, con Nombre, Correo electrónico y Mensaje, etiquetas visibles y errores junto al campo. Los tres son obligatorios; espacios/tabulaciones/saltos de línea sin contenido cuentan como vacío. Correo validado localmente por formato, sin comprobar buzón ni usar red.
+- «Revisar solicitud» no avanza si hay errores y conserva los valores ingresados. Al corregir un campo con error se recalcula su mensaje. Al validar se recortan espacios exteriores, sin eliminar líneas internas del mensaje.
+- Resumen muestra proyecto y todos los campos. «Editar» y Volver/Atrás regresan al formulario con los datos. Se explica que es una demostración sin correos. No hay acceso independiente a Resumen por una ruta que pueda saltarse la validación.
+- «Confirmar solicitud simulada» vuelve a validar, realiza una única transición local y vacía nombre/correo/mensaje. Guarda por etapa y compareAndSet evitan repetir la confirmación; no hay envío, registro de solicitudes, espera artificial o conexión simulada. Un resumen inválido no puede confirmarse y vuelve al formulario con errores.
+- Resultado: «Solicitud simulada completada. No se envió un correo real», aclarando que CIM UC no recibió una solicitud. «Volver al proyecto» quita la entrada de contacto; «Volver a Explorar» recupera el catálogo existente sin copias del flujo. Si se abrió un destacado desde Inicio y Explorar no estaba en la pila, se abre/restaura Explorar sobre Inicio. Se conservan el ViewModel de búsqueda y sus estados/listas.
+- Pantallas con scroll, tarjetas blancas, CTA naranja/blanco, botones de altura táctil mínima 48 dp y formas del tema existente. Teclado de correo, Siguiente entre campos y Listo para ocultar el teclado; insets IME del host ya existente. El mensaje admite varias líneas sin altura rígida que trunque contenido.
+
+### Alcance y privacidad del estado
+- **Una entrada de Navigation para todo el flujo**, `contacto/{id}`. Formulario/Resumen/Confirmación son pasos de `ContactoUiState`, no destinos que acumulen entradas. Las transiciones y validación están fuera de los composables.
+- Una única instancia de `ContactoViewModel`, obtenida con `viewModelStoreOwner = entry` y factory explícita con el ID. Su propietario es la entrada del flujo, no la Activity ni una instancia por pantalla. `MutableStateFlow` privado y `StateFlow` de solo lectura; las pantallas solo reciben estado y callbacks.
+- Rotación y navegación interna conservan el borrador mientras viva esa entrada. Al salir desde el formulario, Navigation elimina su propietario y descarta el borrador. Volver desde Resumen es editar, no salir. Tras confirmar se eliminan los campos y al iniciar otro contacto hay una nueva entrada/ViewModel vacío.
+- En Formulario, Atrás del sistema conserva el comportamiento estándar de ocultar teclado primero y luego salir; Volver sale explícitamente. En Resumen, Atrás edita; en Confirmación, Atrás vuelve al proyecto. Las acciones de salida verifican el destino actual para que una pulsación repetida no quite pantallas adicionales.
+- No se pasan nombre/correo/mensaje en rutas ni se usan SavedStateHandle, DataStore, logs o archivos para el borrador. No se promete restauración tras muerte del proceso. Sin preferencias, persistencia permanente, correo real, backend, autenticación, registro, aportes o postulaciones.
+
+### Verificado realmente
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: BUILD SUCCESSFUL, 48 tareas (20 ejecutadas, 28 al día). Lint: **0 errores, 8 advertencias previas** (versiones, icono ausente y logo.xml conservado sin uso). No se cambiaron dependencias/versiones.
+- `testDebugUnitTest`: NO-SOURCE, sin tests integrados/framework configurado. Se ejecutó un harness JVM temporal sin framework sobre la validación y transiciones puras compiladas: **31 comprobaciones correctas**, únicamente con datos ficticios. Incluye obligatorios/espacios, correos válidos e inválidos, conservación con errores, trim/multilínea, revisión, editar, confirmación idempotente, eliminación del borrador confirmado, proyecto inexistente y regreso seguro de resumen inválido.
+- Harness: `C:/Users/sebyv/AppData/Local/Temp/opencode/AppCimucContactoChecks_20261020.java`; Java source launcher con classpath `app/build/tmp/kotlin-classes/debug` y stdlib 2.0.21 ya instalada. No crea framework ni dependencias. No prueba el propietario Android del ViewModel, su guarda concurrente o interacciones Compose.
+- Reejecutadas las 17 comprobaciones JVM auxiliares de filtrado de Explorar: correctas. Revisión estática de rutas, propietarios, limpieza de pila y ausencia de persistencia/envíos. `git diff --check` sin errores y sin eliminaciones inesperadas.
+- **No se instaló/ejecutó esta versión en dispositivo/emulador**. Rotación, teclado, fuente ampliada, salidas y posición del catálogo siguen pendientes de prueba real. Las capturas de etapas anteriores no prueban estas pantallas.
+- El Figma Make sigue ausente; los recursos originales de insignia/fuentes/fotografías y el material docente mantienen sus pendientes. Se conserva el lenguaje visual existente, sin afirmar fidelidad visual nueva al mockup no disponible.
+
+### Prueba breve en celular
+1. Desde Explorar, dejar una búsqueda/filtros y abrir un proyecto. Revisar estado, recursos, relaciones y Contactar; comprobar que el formulario muestra el proyecto correcto.
+2. Pulsar Revisar sin datos y luego con solo espacios: errores por campo, sin Resumen. Escribir nombre/mensaje ficticios y correo `invalido`: conservar datos y bloquear avance. Usar `persona@example.test` para el caso válido.
+3. Revisar datos en Resumen, pulsar Editar y comprobar los tres campos; repetir con Atrás. Rotar en Formulario y Resumen y verificar borrador/paso.
+4. Confirmar y pulsar rápidamente de nuevo: una sola confirmación, mensaje inequívoco de simulación. Rotar en Resultado: no reabrir Resumen ni confirmar otra vez.
+5. Volver al proyecto, iniciar otro contacto y verificar campos vacíos. Salir de un formulario sin confirmar y reabrir: también vacío. Antes de confirmar, Editar sí conserva los campos.
+6. Repetir y usar Volver a Explorar: revisar tipo, consulta, filtros y posición. Probar también desde un destacado de Inicio. No deben quedar Formulario/Resumen/Resultado al pulsar Atrás tras finalizar.
+7. Repetir en horizontal y fuente ampliada, con teclado visible: desplazar para llegar a los botones, usar Siguiente/Listo y comprobar que no se cortan los campos ni el mensaje.
+
+### Flujo para defensa oral
+Detalle entrega solo ID → el ViewModel de la entrada consulta el proyecto → guarda borrador y valida → publica Resumen → confirmación local única borra datos y publica Resultado → salir elimina esa entrada. Explorar mantiene su propio estado Activity; ninguna solicitud sale del teléfono.
+
+Etapa detenida antes de preferencias y persistencia de semana 9. Sin commits ni push.
+
+## Ajuste — composición del detalle de proyecto (2026-10-20)
+
+### Implementado
+- Cambio puntual en `ui/DetalleProyectoScreen.kt`, complementando el contacto existente sin reiniciarlo. No se modificaron navegación, ViewModels, modelos, datos, recursos, tema o dependencias. Se conservan todos los cambios previos del flujo de contacto.
+- Foto local, cuando `imagenRes` exista, a todo el ancho interior, proporción 16:9 y recorte proporcional; categoría superpuesta abajo. Los tres proyectos actuales siguen sin fotografía: se muestra una etiqueta compacta de categoría, no una fotografía inventada ni un gran hueco vacío.
+- Título azul destacado y etiqueta de estado en bloques separados, evitando superposición con texto ampliado. Indicadores de año y cantidad real de integrantes resueltos por las relaciones del proyecto, descripción completa, capacidades I+D como chips y equipo como tarjetas blancas.
+- Las tarjetas muestran iniciales, nombre y descripción disponible; no se inventan cargo o especialidad. Chips y tarjetas conservan sus callbacks hacia los detalles existentes por ID. Los indicadores/chips pasan a otra línea cuando falta ancho; el contenido completo permite scroll y no hay alturas fijas para textos.
+- **Disponibilidad omitida:** `Proyecto` no tiene campo de cupos/disponibilidad. No se deduce del estado ni del número de integrantes; desconocido no se representa como cero ni como disponibilidad positiva. No se añadió un campo solo para completar una cifra de la captura.
+- Se mantiene «Recursos asociados» y «Sin recursos disponibles», sin enlaces inventados. Al final: «Contactar sobre este proyecto» conectado al mismo flujo, y botones deshabilitados «Solicitar unirse al proyecto» / «Entregar información al proyecto», cada uno con «Próximamente» visible. La búsqueda previa en código no encontró implementaciones de aportes/postulaciones que hubiera que conservar; su documentación permanece intacta.
+- Único control visual de regreso: Volver de la barra compartida. Atrás mantiene la pila existente: desde el catálogo vuelve a ese listado con estado/posición; desde un detalle relacionado respeta la secuencia previa. No se agregó un segundo botón de regreso ni pestaña Proyectos.
+
+### Fuentes y límites visuales
+- Las dos capturas mencionadas como adjuntas no están disponibles/legibles en esta sesión ni aparecen en la carpeta. Solo hay capturas Android anteriores de Inicio y Explorar, no referencias del detalle. El `.make` y fotografías originales continúan ausentes.
+- Se siguió la composición escrita por el usuario y se conservaron paleta y fuentes actuales del tema. No se afirma haber recuperado ahora insignia/fuentes ni haber comparado este detalle con las dos capturas. Las fuentes originales siguen pendientes según el registro anterior.
+
+### Verificado
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: BUILD SUCCESSFUL, 48 tareas (18 ejecutadas, 30 al día). Lint: 0 errores, 8 advertencias previas. testDebugUnitTest: NO-SOURCE, sin suite integrada.
+- 29 comprobaciones JVM auxiliares sobre el repositorio real compilado: identidad, metadatos, descripción/estado, conjuntos de equipo/capacidades, contadores, relaciones inversas e ID inexistente. Todas correctas. Materiales reciclados: Ana/Luis (2) y Ensayos (1); Eficiencia de procesos: Luis (1) y Modelado (1); Diseño de mezclas: Ana (1), Ensayos/Modelado (2).
+- Harness temporal sin framework: `C:/Users/sebyv/AppData/Local/Temp/opencode/AppCimucDetalleChecks_20261020.java`, Java source launcher con clases debug y stdlib 2.0.21 existente. También se reejecutaron correctamente las 31 comprobaciones de contacto y 17 de filtrado. Son pruebas de lógica, no de pulsaciones ni de Compose.
+- Revisión estática de IDs/callbacks, regreso y contacto: se conserva `onBack` y `onContactar(proyecto.id)` del host. Diff revisado y sin eliminaciones inesperadas; `git diff --check` sin errores. No se descartaron los cambios anteriores ni se hicieron commits/push.
+- **No se ejecutó esta composición en dispositivo/emulador.** Imagen superpuesta, chips, avatares, fuente ampliada/horizontal, regreso al catálogo y acceso a contacto requieren comprobación real. No hay capturas nuevas del detalle.
+
+### Comprobación en celular
+1. Abrir los tres proyectos desde Explorar. Comparar año, categoría, descripción, estado y los equipos/capacidades indicados arriba; no deben repetirse relaciones ajenas ni aparecer cupos inventados.
+2. Pulsar cada chip y tarjeta de equipo; volver usando el único Volver o Atrás del sistema. Desde un listado filtrado, abrir un detalle y volver: revisar consulta, filtros y posición.
+3. Desplazar al final: recursos siguen visibles, Contactar abre el proyecto correcto y permite Resumen/Confirmación simulada. Los otros dos botones no reaccionan y muestran Próximamente.
+4. Repetir con título/fuente ampliados, horizontal y distintos anchos: estado separado del título, chips envolventes, tarjetas legibles y acceso a todas las acciones por scroll. La foto/categoría superpuesta no puede comprobarse con los proyectos actuales hasta disponer de imágenes locales.

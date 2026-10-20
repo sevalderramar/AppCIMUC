@@ -72,3 +72,17 @@ private val CimShapes = Shapes(
 fun AppNombreGrupoXTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = CimColors, typography = CimTypography, shapes = CimShapes, content = content)
 }
+
+// Estilos de las hojas de participación, integrados al tema existente.
+// Valores confirmados en el mensaje; pendientes de contraste con el exportado ausente.
+internal object ParticipacionEstilo {
+    val avisoPostulacionFondo = Color(0xFFFEF3E2)
+    val avisoPostulacionBorde = Color(0xFFF5C78A)
+    val avisoPostulacionTexto = Color(0xFF7D4E1F)
+    val avisoAporteFondo = Color(0xFFEAF2FF)
+    val avisoAporteBorde = Color(0xFFA8C8F0)
+    val placeholder = Color(0xFFA09890)
+    val formaModal = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    val formaBoton = RoundedCornerShape(16.dp)
+    val padding = 24.dp
+}

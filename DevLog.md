@@ -150,3 +150,52 @@
 - `.make` y fuentes originales siguen ausentes; revisada la captura previa de Explorar. Insignia, fotografías, tipografías originales y material docente 6–9 siguen pendientes; no se atribuyen valores/requisitos a fuentes no disponibles.
 - Estado en memoria durante la Activity y restauración de listas Compose/Navigation, no persistencia permanente ni promesa de recuperación de consultas tras muerte del proceso.
 - Etapa detenida antes de formulario de contacto; no se implementaron resumen/confirmación, registro, aportes ni postulaciones.
+
+## Etapa — flujo de contacto estrictamente simulado (2026-10-20)
+
+### Implementado
+- Leídos AGENTS, README y DevLog; Git limpio al inicio. Revisados detalle, navegación, modelo, diseño/dependencias y consultas existentes antes de editar. No existía flujo de contacto; se conserva el catálogo completo y su estado.
+- Creados `viewmodel/ContactoUiState.kt`, `viewmodel/ContactoViewModel.kt` y `ui/ContactoScreen.kt` (formulario, resumen y confirmación).
+- Modificados `ui/DetalleProyectoScreen.kt`, `ui/CimComponents.kt`, `ui/navigation/Routes.kt`, `ui/navigation/AppNavHost.kt`, README y DevLog. Sin borrar/renombrar archivos ni reemplazar pantallas existentes.
+- Detalle conserva información/relaciones y representa imagen local si hay; estado ya existente mantenido. No hay recursos en el modelo actual: texto «Sin recursos disponibles», sin enlaces inventados. CTA Contactar por ID, también en proyectos finalizados sin asociarlo a cupos.
+- UiState con campos, errores y paso; StateFlow de solo lectura y mutable privado. Validadores/transiciones puros para obligatorios, espacios, formato de correo, resumen válido, editar y confirmar una vez. Nombre/correo/mensaje se conservan ante errores, se recortan exteriormente al revisar y se borran al confirmar. Sin red/esperas/registros de solicitudes.
+- Una sola ruta `contacto/{id}`: ViewModel explícitamente ligado a esa NavBackStackEntry mediante factory. Los tres pasos se representan dentro de ella, evitando tres instancias o acumulación de pantallas. Sin datos personales en argumentos, SavedStateHandle, archivos, logs o DataStore.
+- Volver/Atrás de Resumen edita conservando campos; de Formulario sale y descarta al eliminar el propietario; de Resultado vuelve al proyecto. Salida a Explorar recupera su entrada o restaura/abre sobre Inicio cuando se llegó desde un destacado. Guardas de destino en entrada/salidas y compareAndSet de confirmación para pulsaciones repetidas.
+- Pantallas con tema existente, etiquetas y errores por campo, tarjetas blancas, botones accesibles, scroll e IME del host; acciones Siguiente/Listo del teclado sin envío real. No se alteró el ViewModel Activity de Explorar ni sus rutas/relaciones.
+- No se añadieron dependencias ni se cambiaron versiones, SDK, Gradle o paquete. Sin preferencias, persistencia, registro, autenticación, aportes o postulaciones.
+
+### Verificado
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: BUILD SUCCESSFUL, 48 tareas (20 ejecutadas, 28 al día).
+- Lint: 0 errores y 8 advertencias previas. testDebugUnitTest NO-SOURCE: no hay suite integrada/framework configurado; no se presentan tests inexistentes como aprobados.
+- Harness JVM temporal con datos ficticios sobre clases Kotlin reales de validación/transiciones: **31 comprobaciones correctas**. Incluye correo con alias/subdominio y 13 formatos inválidos, obligatorios, espacios, errores sin perder campos, trim/multilínea, editar, confirmación única/idempotente, borrado tras confirmar, resumen inválido y proyecto inexistente.
+- Harness en `C:/Users/sebyv/AppData/Local/Temp/opencode/AppCimucContactoChecks_20261020.java`, Java source launcher usando clases debug y stdlib 2.0.21 de caché, sin framework nuevo. No verifica Android/Compose, concurrencia del CAS ni lifecycle real.
+- Regresión lógica auxiliar de Explorar: 17 comprobaciones de filtrado reejecutadas, todas correctas.
+- Revisados código, alcance de ViewModel, rutas (solo IDs), pila, transición única y ausencia de envíos/persistencia. Diff sin eliminaciones inesperadas; git diff --check sin errores de espacios. Sin commits ni push.
+
+### Pendiente / límites reales
+- No se ejecutó esta versión en teléfono/emulador, ni se capturaron las nuevas pantallas. Casos manuales de formulario, errores, edición, rotación, confirmación repetida, salida/reinicio vacío, posición de catálogo, fuente ampliada y teclado detallados en README.
+- El borrador vive solo mientras exista su entrada/VM en memoria. Rotación implementada mediante alcance de Navigation; no se promete restauración tras muerte del proceso.
+- `.make`, insignia/fuentes/fotos originales y material docente siguen pendientes; se mantiene el diseño disponible sin inventar referencia.
+- Detener antes de preferencias y persistencia de semana 9; no se implementaron otras ampliaciones.
+
+## Ajuste — detalle visual con chips y equipo (2026-10-20)
+
+### Implementado
+- Releído AGENTS y revisados README/DevLog, Git y código. Se conservaron todas las modificaciones/no seguidos previos de contacto. Antes de editar se identificaron falta de fotos/cupos/cargo y ausencia de implementaciones de aportes/postulaciones (búsqueda en app/src/main sin resultados).
+- Solo modificado en código `ui/DetalleProyectoScreen.kt`; actualizados README y este DevLog. No se reiniciaron pantallas, modelos, datos, navegación, contactos o estilos compartidos.
+- Foto local opcional con Crop proporcional 16:9 y categoría superpuesta abajo; fallback compacto sin foto ficticia. Título y estado separados, indicadores de año/integrantes desde relaciones, descripción completa, capacidades con AssistChip y equipo con tarjetas blancas/avatares de iniciales y descripción existente.
+- Se mantienen recursos, estado no encontrado y callbacks por ID a capacidades/integrantes. Una sola acción Volver compartida; navegación y conservación de filtros/posición no modificadas.
+- CTA final «Contactar sobre este proyecto» reutiliza el contacto ya implementado. Dos botones deshabilitados con Próximamente, sin rutas ni formularios nuevos de aportes/postulaciones.
+- Sin indicador de disponibilidad porque el modelo no la representa; no se convirtió desconocido en cero ni se derivó disponibilidad del estado. Sin cargos/especialidades inventados ni datos copiados de una referencia para todos los proyectos.
+- Scroll existente, FlowRow para indicadores/chips, texto sin alturas rígidas y controles táctiles mínimos de 48 dp. Avatar no interactivo separado del nombre para evitar lecturas duplicadas; tarjeta de equipo completa pulsable.
+
+### Verificado
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: BUILD SUCCESSFUL, 48 tareas (18 ejecutadas, 30 al día). Lint 0 errores/8 advertencias previas; testDebugUnitTest NO-SOURCE.
+- 29 comprobaciones JVM auxiliares correctas de los tres proyectos: identidad/metadatos, descripción/estado, conjuntos y cantidades de relaciones, consultas inversas y proyecto desconocido. Equipo/capacidades: reciclaje 2/1, energía 1/1 y mezclas 1/2. No hubo cambios en el repositorio ni su muestra.
+- Harness temporal `C:/Users/sebyv/AppData/Local/Temp/opencode/AppCimucDetalleChecks_20261020.java`, sin framework/dependencias nuevas. Regresión: 31 comprobaciones de contacto y 17 de filtrado reejecutadas, correctas.
+- Revisados callbacks de chips/equipo/contacto y regreso en código; no equivale a probar pulsaciones. Diff revisado sin eliminaciones inesperadas; git diff --check sin errores. Cambios previos y archivos conservados; sin commits ni push.
+
+### Pendiente real
+- Capturas adjuntas de detalle no accesibles en esta sesión/carpeta; .make y fotos originales ausentes. No se afirma comparación visual ni recuperación de fuentes/insignia nuevas. Se siguió la especificación escrita conservando el tema actual.
+- No se ejecutó esta versión en dispositivo/emulador. Probar los tres detalles, chips/tarjetas, regreso con filtros/posición, contacto y scroll/fuente ampliada/horizontal según README. La rama de foto superpuesta queda pendiente de imagen local real.
+- No se implementan aportes, postulaciones, preferencias o persistencia en este ajuste.

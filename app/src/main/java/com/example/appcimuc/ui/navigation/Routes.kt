@@ -9,8 +9,11 @@ object Routes {
     const val PROYECTO = "proyecto/{id}"
     const val INTEGRANTE = "integrante/{id}"
     const val CAPACIDAD = "capacidad/{id}"
+    // Una única entrada es propietaria de Formulario, Resumen y Confirmación.
+    const val CONTACTO = "contacto/{id}"
 
     fun proyecto(id: String) = "proyecto/${Uri.encode(id)}"
     fun integrante(id: String) = "integrante/${Uri.encode(id)}"
     fun capacidad(id: String) = "capacidad/${Uri.encode(id)}"
+    fun contacto(id: String) = "contacto/${Uri.encode(id)}"
 }

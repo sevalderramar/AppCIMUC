@@ -11,5 +11,10 @@ data class Proyecto(
     val capacidadIds: List<String>,
     val estado: String = "En desarrollo",
     // Recurso drawable local opcional; null cuando aún no se dispone de fotografía.
-    val imagenRes: Int? = null
-)
+    val imagenRes: Int? = null,
+    // null significa información desconocida, no cero ni rechazo de postulaciones.
+    val cuposDisponibles: Int? = null,
+    val aceptaPostulaciones: Boolean? = null
+) {
+    val puedePostular: Boolean get() = aceptaPostulaciones == true && (cuposDisponibles ?: 0) > 0
+}
