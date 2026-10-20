@@ -8,5 +8,8 @@ data class Proyecto(
     val categoriaId: String,
     val anio: Int,
     val integranteIds: List<String>,
-    val capacidadIds: List<String>
+    val capacidadIds: List<String>,
+    val estado: String = "En desarrollo",
+    // Recurso drawable local opcional; null cuando aún no se dispone de fotografía.
+    val imagenRes: Int? = null
 )

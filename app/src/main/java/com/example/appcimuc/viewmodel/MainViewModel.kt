@@ -2,6 +2,7 @@ package com.example.appcimuc.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.example.appcimuc.model.AppInfo
+import com.example.appcimuc.model.Proyecto
 import com.example.appcimuc.repository.AppRepository
 
 /**
@@ -13,6 +14,13 @@ class MainViewModel(
 
     val appInfo: AppInfo = repository.getAppInfo()
     val proyectos = repository.getProyectos()
+    val categorias = repository.getCategorias()
+    val totalProyectos = proyectos.size
+    val totalIntegrantes = repository.getIntegrantes().size
+    val totalCapacidades = repository.getCapacidades().size
+    // Selección demostrativa estable: dos proyectos más recientes, con desempate por ID.
+    val destacados = proyectos.sortedWith(compareByDescending<Proyecto> { it.anio }
+        .thenBy { it.id }).take(2)
 
     fun proyecto(id: String) = repository.getProyecto(id)
     fun categoria(id: String) = repository.getCategoria(id)

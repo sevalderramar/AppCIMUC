@@ -27,6 +27,7 @@ fun DetalleProyectoScreen(
         } else {
             Text(proyecto.titulo, style = MaterialTheme.typography.headlineMedium)
             Text("${categoria?.nombre ?: "Categoría no disponible"} · ${proyecto.anio}")
+            Text(proyecto.estado, style = MaterialTheme.typography.labelLarge)
             Text(proyecto.descripcion, style = MaterialTheme.typography.bodyLarge)
             TituloSeccion("Integrantes relacionados")
             if (integrantes.isEmpty()) Text("Sin integrantes relacionados.")

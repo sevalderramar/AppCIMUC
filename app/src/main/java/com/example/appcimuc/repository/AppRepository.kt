@@ -10,12 +10,15 @@ import com.example.appcimuc.model.Proyecto
 class AppRepository {
     fun getAppInfo(): AppInfo {
         return AppInfo(
-            title = "Bienvenido a CIM UC",
-            message = "Explora un catálogo sintético de proyectos, integrantes y capacidades. No representa información institucional real ni envía solicitudes."
+            title = "Explora proyectos, capacidades e investigación",
+            message = "Descubre el ecosistema de innovación del CIM UC y conecta con oportunidades de colaboración."
         )
     }
 
     fun getProyectos(): List<Proyecto> = CatalogoEjemplo.proyectos
+    fun getCategorias() = CatalogoEjemplo.categorias
+    fun getIntegrantes() = CatalogoEjemplo.integrantes
+    fun getCapacidades() = CatalogoEjemplo.capacidades
     fun getProyecto(id: String) = getProyectos().find { it.id == id }
     fun getCategoria(id: String) = CatalogoEjemplo.categorias.find { it.id == id }
     fun getIntegrante(id: String) = CatalogoEjemplo.integrantes.find { it.id == id }

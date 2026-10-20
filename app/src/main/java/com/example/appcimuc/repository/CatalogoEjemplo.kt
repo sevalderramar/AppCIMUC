@@ -21,10 +21,10 @@ internal object CatalogoEjemplo {
     )
     val proyectos = listOf(
         Proyecto("proy-reciclaje", "Materiales reciclados", "Estudio sintético de mezclas recicladas y sus propiedades.",
-            "cat-materiales", 2025, listOf("int-ana", "int-luis"), listOf("cap-ensayos")),
+            "cat-materiales", 2025, listOf("int-ana", "int-luis"), listOf("cap-ensayos"), estado = "Finalizado"),
         Proyecto("proy-energia", "Eficiencia de procesos", "Simulación sintética de alternativas para reducir el uso de energía.",
-            "cat-procesos", 2026, listOf("int-luis"), listOf("cap-modelado")),
+            "cat-procesos", 2026, listOf("int-luis"), listOf("cap-modelado"), estado = "En desarrollo"),
         Proyecto("proy-mezclas", "Diseño de mezclas", "Comparación sintética de formulaciones mediante ensayos y modelado.",
-            "cat-materiales", 2026, listOf("int-ana"), listOf("cap-ensayos", "cap-modelado"))
+            "cat-materiales", 2026, listOf("int-ana"), listOf("cap-ensayos", "cap-modelado"), estado = "En desarrollo")
     )
 }

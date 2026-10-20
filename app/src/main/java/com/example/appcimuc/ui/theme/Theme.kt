@@ -1,9 +1,74 @@
 package com.example.appcimuc.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+// Paleta confirmada por el usuario. El contenedor .make no está disponible localmente.
+private val Azul = Color(0xFF1A3C5E)
+private val Naranja = Color(0xFFB5621A)
+private val Fondo = Color(0xFFF4F1EC)
+private val Texto = Color(0xFF1A1A1A)
+private val TextoSecundario = Color(0xFF7A7267)
+private val Borde = Color(0xFFDDD8CE)
+private val FondoSecundario = Color(0xFFEAE5DC)
+
+// Roles explícitos para evitar superficies o acentos predeterminados ajenos al diseño.
+// Los colores de error son semánticos locales, no valores atribuidos al prototipo.
+private val CimColors = lightColorScheme(
+    primary = Azul, onPrimary = Color.White,
+    primaryContainer = FondoSecundario, onPrimaryContainer = Azul,
+    inversePrimary = Color.White,
+    secondary = Naranja, onSecondary = Color.White,
+    secondaryContainer = FondoSecundario, onSecondaryContainer = Azul,
+    tertiary = Naranja, onTertiary = Color.White,
+    tertiaryContainer = FondoSecundario, onTertiaryContainer = Texto,
+    background = Fondo, onBackground = Texto,
+    surface = Color.White, onSurface = Texto,
+    surfaceVariant = FondoSecundario, onSurfaceVariant = TextoSecundario,
+    surfaceTint = Azul,
+    inverseSurface = Azul, inverseOnSurface = Color.White,
+    error = Color(0xFFBA1A1A), onError = Color.White,
+    errorContainer = Color(0xFFFFDAD6), onErrorContainer = Color(0xFF410002),
+    outline = Borde, outlineVariant = Borde, scrim = Color.Black,
+    surfaceBright = Color.White, surfaceDim = FondoSecundario,
+    surfaceContainer = Fondo, surfaceContainerLow = Fondo,
+    surfaceContainerLowest = Color.White,
+    surfaceContainerHigh = FondoSecundario, surfaceContainerHighest = FondoSecundario
+)
+
+// Sustitución temporal sin red: faltan los archivos locales de Plus Jakarta Sans e Inter.
+// Tamaños/pesos conservados de la etapa Android anterior; no recuperados del exportado.
+private val Titulos = FontFamily.SansSerif
+private val Cuerpo = FontFamily.SansSerif
+private val CimTypography = Typography(
+    headlineMedium = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.Bold,
+        fontSize = 28.sp, lineHeight = 36.sp),
+    titleLarge = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.SemiBold,
+        fontSize = 22.sp, lineHeight = 30.sp),
+    titleMedium = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.Bold,
+        fontSize = 18.sp, lineHeight = 26.sp),
+    bodyLarge = TextStyle(fontFamily = Cuerpo, fontSize = 16.sp, lineHeight = 24.sp),
+    bodySmall = TextStyle(fontFamily = Cuerpo, fontSize = 12.sp, lineHeight = 18.sp),
+    labelLarge = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.Bold,
+        fontSize = 14.sp, lineHeight = 20.sp)
+)
+
+private val CimShapes = Shapes(
+    small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp)
+)
 
 @Composable
 fun AppNombreGrupoXTheme(content: @Composable () -> Unit) {
-    MaterialTheme(content = content)
+    MaterialTheme(colorScheme = CimColors, typography = CimTypography, shapes = CimShapes, content = content)
 }

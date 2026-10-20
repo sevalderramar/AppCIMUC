@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +33,14 @@ internal fun CatalogoLayout(
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(titulo) },
-            navigationIcon = { TextButton(onClick = onBack) { Text("Volver") } }
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+                navigationIconContentColor = MaterialTheme.colorScheme.primary
+            ),
+            navigationIcon = { TextButton(onClick = onBack) {
+                Text("Volver", color = MaterialTheme.colorScheme.primary)
+            } }
         )
     }) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
@@ -42,7 +50,7 @@ internal fun CatalogoLayout(
                     .fillMaxSize().then(scrollModifier).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text("Datos sintéticos de demostración", style = MaterialTheme.typography.labelLarge)
+                Text("Datos de demostración", style = MaterialTheme.typography.bodySmall)
                 content()
             }
         }
