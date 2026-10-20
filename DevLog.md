@@ -123,3 +123,30 @@
 ### Pendiente
 - Aportar el `.make` en `docs/diseno` para recuperar y verificar insignia/fotos/fuentes/SVG; completar entonces la comparación visual.
 - Completar pruebas de botón principal, detalles/relaciones, Volver/Atrás, pulsaciones repetidas, fuente ampliada y orientación horizontal según README. Detener esta etapa antes de búsqueda y filtros.
+
+## Etapa — Explorar: tres tipos, búsqueda y filtros (2026-10-20)
+
+### Implementado
+- Releídos AGENTS, README y DevLog; Git inicialmente limpio y código real revisado. El catálogo, tarjetas, rutas/detalles y métodos de listado del repositorio ya existían: no se regeneraron ni duplicaron.
+- Creado `viewmodel/ExplorarUiState.kt`: selector, consultas independientes, filtros/opciones de proyectos, resultados y totales; propiedades derivadas para contador/vacío/limpieza y función pura `filtrarExplorar` con normalización por Locale.ROOT, trim y espacios repetidos.
+- Ampliado `viewmodel/MainViewModel.kt`: datos del repositorio existentes, StateFlow de solo lectura y MutableStateFlow privado, eventos de selección/búsqueda/categoría/año/limpieza; opciones obtenidas del catálogo completo y filtrado fuera de UI. Mantiene datos/funciones previos de Inicio y detalles.
+- Adaptado `ui/ExplorarScreen.kt`, no regenerado: selector, búsqueda, chips de categoría/año solo para proyectos, contador, limpieza por tipo, estados vacíos distintos y tres cuadrículas con claves estables. Una posición guardable por tipo; se reinicia por eventos de edición/limpieza, no por entrada/recomposición. Todo el encabezado de controles desplaza junto con resultados para evitar una zona fija demasiado alta.
+- Ampliado `ui/CimComponents.kt` con tarjeta reutilizada por capacidades/integrantes, conservando la tarjeta de proyectos. Sin cambios en modelos, muestra sintética, recursos o repositorio: las consultas necesarias ya estaban disponibles.
+- Modificado `ui/navigation/AppNavHost.kt`: recoge StateFlow mediante collectAsState compatible con la base, conecta eventos y detalles por ID, mantiene la instancia Activity compartida e incorpora insets IME/ocultación del teclado al cambiar de sección.
+- Actualizados README y este DevLog, diferenciando implementación, comprobación estática/JVM y pruebas manuales pendientes. Conservados todos los apartados anteriores.
+- Paquete, estructura, dependencias, versiones, tema, iconos y datos intactos. Sin contacto, registro, aportes, postulaciones, DataStore, red o base de datos.
+
+### Verificado
+- Primera ejecución `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: BUILD SUCCESSFUL, 48 tareas (16 ejecutadas, 32 al día).
+- Segunda ejecución tras ajuste del contador singular/plural: BUILD SUCCESSFUL, 48 tareas (13 ejecutadas, 35 al día).
+- Lint: 0 errores y 8 advertencias previas; seis de versiones disponibles, MissingApplicationIcon y UnusedResources de logo.xml conservado. Sin actualizaciones para silenciarlas.
+- testDebugUnitTest NO-SOURCE: no hay tests integrados/framework configurado. No se afirma que se ejecutara una suite inexistente.
+- Harness JVM temporal sin framework sobre las clases Kotlin reales compiladas: **17 comprobaciones correctas**. Comprueba título/descripción, mayúsculas, espacios iniciales/finales/repetidos, categoría, año, combinación AND, cero coincidencias, estado equivalente a limpieza, capacidades/integrantes por nombre/descripción, consultas independientes y fuente vacía. No prueba el evento limpiar del ViewModel ni interacciones de Compose.
+- Harness en `C:/Users/sebyv/AppData/Local/Temp/opencode/AppCimucExplorarChecks_20261020.java`; comando Java source launcher con classpath de `app/build/tmp/kotlin-classes/debug` y stdlib 2.0.21 ya instalada en caché. Sin dependencias/framework/archivos de tests añadidos al proyecto. Casos reproducibles detallados en README.
+- Revisados alcance de ViewModel, callbacks, IDs, Saver de listas y ausencia de filtrado/acceso al repositorio en composables. Diff sin eliminaciones inesperadas y git diff --check sin errores de espacios. Sin commits ni push.
+
+### Pendiente / límites
+- No se ejecutó esta versión en dispositivo/emulador ni se tomaron capturas nuevas. Navegación, conservación de posición/estado, rotación, teclado, fuente ampliada y horizontal están implementados pero necesitan validación de interacción según README. Las capturas previas no prueban los nuevos controles.
+- `.make` y fuentes originales siguen ausentes; revisada la captura previa de Explorar. Insignia, fotografías, tipografías originales y material docente 6–9 siguen pendientes; no se atribuyen valores/requisitos a fuentes no disponibles.
+- Estado en memoria durante la Activity y restauración de listas Compose/Navigation, no persistencia permanente ni promesa de recuperación de consultas tras muerte del proceso.
+- Etapa detenida antes de formulario de contacto; no se implementaron resumen/confirmación, registro, aportes ni postulaciones.

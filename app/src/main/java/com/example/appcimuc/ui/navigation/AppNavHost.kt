@@ -2,9 +2,11 @@ package com.example.appcimuc.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,6 +16,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.example.appcimuc.R
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -34,10 +38,14 @@ fun AppNavHost() {
     val navController = rememberNavController()
     // Propietario Activity: catálogo estable durante todos los recorridos de este host.
     val mainViewModel: MainViewModel = viewModel()
+    val teclado = LocalSoftwareKeyboardController.current
+    val foco = LocalFocusManager.current
     val currentEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentEntry?.destination?.route
     val isPrincipal = currentRoute == Routes.INICIO || currentRoute == Routes.EXPLORAR
     val onPrincipal: (String) -> Unit = { route ->
+        teclado?.hide()
+        foco.clearFocus()
         if (navController.currentDestination?.route != route) {
             navController.navigate(route) {
                 popUpTo(Routes.INICIO) { saveState = true }
@@ -52,7 +60,7 @@ fun AppNavHost() {
     }
 
     // Las pantallas gestionan el área superior; la barra principal gestiona la inferior.
-    Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0), bottomBar = {
+    Scaffold(modifier = Modifier.imePadding(), contentWindowInsets = WindowInsets(0, 0, 0, 0), bottomBar = {
         if (isPrincipal) {
             NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
                 listOf(Routes.INICIO to "Inicio", Routes.EXPLORAR to "Explorar").forEach { (route, title) ->
@@ -83,7 +91,19 @@ fun AppNavHost() {
                     mainViewModel = mainViewModel, onProyecto = onProyecto)
             }
             composable(Routes.EXPLORAR) {
-                ExplorarScreen(mainViewModel.proyectos, onProyecto, onBack, mainViewModel.categorias)
+                val estado by mainViewModel.explorarUiState.collectAsState()
+                ExplorarScreen(
+                    estado = estado,
+                    onTipo = mainViewModel::seleccionarTipo,
+                    onBuscar = mainViewModel::buscar,
+                    onCategoria = mainViewModel::seleccionarCategoria,
+                    onAnio = mainViewModel::seleccionarAnio,
+                    onLimpiar = mainViewModel::limpiarExplorar,
+                    onProyecto = onProyecto,
+                    onCapacidad = { navController.navigate(Routes.capacidad(it)) { launchSingleTop = true } },
+                    onIntegrante = { navController.navigate(Routes.integrante(it)) { launchSingleTop = true } },
+                    onBack = onBack
+                )
             }
             composable(Routes.PROYECTO, arguments = listOf(navArgument(Routes.ID) { type = NavType.StringType })) { entry ->
                 val id = entry.arguments?.getString(Routes.ID).orEmpty()

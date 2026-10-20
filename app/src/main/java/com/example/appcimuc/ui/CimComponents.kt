@@ -66,3 +66,17 @@ internal fun ProyectoCard(proyecto: Proyecto, onProyecto: (String) -> Unit, cate
         }
     }
 }
+
+@Composable
+internal fun EntidadCatalogoCard(tipo: String, nombre: String, descripcion: String, accion: String, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(tipo, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+            Text(nombre, style = MaterialTheme.typography.titleMedium)
+            Text(descripcion, style = MaterialTheme.typography.bodyLarge)
+            Text(accion, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
+    }
+}

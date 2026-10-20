@@ -154,3 +154,42 @@ Este es el estado más reciente; los apartados anteriores se conservan como hist
 3. Desde Materiales reciclados, abrir Ana Ejemplo y Ensayos de materiales. Probar Volver y Atrás del sistema para recuperar el destino previo.
 4. Alternar Inicio/Explorar, repetir pulsaciones en el destino seleccionado y comprobar que no se acumulan pantallas. Repetir con fuente ampliada y orientación horizontal.
 - Búsqueda/filtros y Contacto → Resumen → Confirmación simulada siguen pendientes únicamente en documentación, sin controles ficticios. Registro, autenticación, aportes, postulaciones y evaluaciones continúan fuera de esta etapa.
+
+## Etapa — Explorar unificado con búsqueda y filtros (2026-10-20)
+
+Este apartado actualiza el estado vigente: **búsqueda y filtros ya están implementados**. Los registros anteriores se conservan como historial.
+
+### Implementado
+- Antes de editar: Git limpio; ya existían catálogo/tarjetas de proyectos, detalles y relaciones de las tres entidades, y consultas completas de capacidades/integrantes en `AppRepository`. Se reutilizaron, sin duplicar consultas ni sustituir datos.
+- Explorar es el único catálogo, con selector Proyectos / Capacidades / Integrantes, campo de búsqueda identificado por tipo, contador y acción «Limpiar búsqueda y filtros». Inicio/Explorar siguen siendo los únicos destinos principales.
+- Proyectos: título o descripción, categoría y año combinados con AND. Categorías derivadas de las utilizadas por proyectos y años distintos descendentes desde la muestra completa; «Todos» representa ausencia de restricción. Se mantiene `ProyectoCard`.
+- Capacidades/integrantes: nombre o descripción, tarjetas blancas adecuadas a cada entidad y navegación por ID a los detalles existentes. Sin filtros de categoría/año que sus modelos no soportan.
+- Búsqueda inmediata, sin depender de mayúsculas y normalizando espacios iniciales/finales/repetidos. No se promete búsqueda sin tildes ni coincidencia de palabras en cualquier orden.
+- Se distingue catálogo de origen vacío de resultados sin coincidencias. En este último hay mensaje comprensible y acción de limpieza. Limpiar afecta solamente al tipo seleccionado y devuelve su catálogo completo; conserva consultas de los otros tipos.
+- `MainViewModel` (mismo propietario Activity del host e Inicio) conserva selección, tres consultas independientes y filtros de proyectos. Expone `StateFlow<ExplorarUiState>` de solo lectura mediante `asStateFlow`; `MutableStateFlow` es privado. `filtrarExplorar` es una función pura fuera de los composables. La UI recibe datos y emite callbacks; no consulta el repositorio.
+- Tres `rememberLazyGridState` independientes con guardado de Compose/Navigation y claves estables de resultados por tipo/ID. Consultas/filtros se mantienen al cambiar de tipo, abrir detalle, volver, alternar Inicio/Explorar y rotar. Solo una edición de búsqueda/filtro o limpieza reinicia la posición del tipo actual; no se reinicia por recomposición o al volver a la pantalla.
+- Controles dentro de la cuadrícula desplazable, chips con salto de línea y altura táctil mínima de 48 dp; una/dos/tres columnas según ancho. Acción Buscar del teclado oculta IME y limpia foco; cambiar de tipo/sección, usar filtros/limpieza, abrir detalle o Volver también lo oculta. Atrás del sistema conserva el comportamiento estándar del teclado y Navigation. Insets IME gestionados en el contenedor principal.
+- Sin persistencia permanente: el ViewModel conserva estado ante rotación, pero no se promete restaurarlo tras terminar el proceso/cerrar la app. Sin DataStore, backend, formularios ni nuevas dependencias/versiones.
+- Se conservan tema, tarjetas, recursos e iconos. El `.make` sigue ausente y no hay nuevas capturas de referencia: se revisó la captura Android previa de Explorar, no se afirma contraste nuevo con Figma. Insignia/fuentes/fotos originales y material docente 6–9 mantienen sus pendientes anteriores.
+
+### Verificado en esta etapa
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: `BUILD SUCCESSFUL` en dos ejecuciones. Última: 48 tareas (13 ejecutadas, 35 al día).
+- Lint: 0 errores y 8 advertencias existentes (seis por versiones disponibles, icono de aplicación ausente y `logo.xml` conservado sin uso). No se actualizaron versiones ni se silenciaron avisos.
+- `testDebugUnitTest`: **NO-SOURCE**, no hay suite de pruebas integrada ni framework configurado. No significa que hayan pasado tests de la app.
+- Se ejecutaron 17 comprobaciones JVM auxiliares sin framework sobre las clases Kotlin compiladas de modelo/repositorio/filtro: título, descripción, mayúsculas, espacios, categoría, año, AND, cero coincidencias, valores de limpieza, búsquedas de capacidades/integrantes, consultas independientes y catálogo vacío. Todas correctas. No verifican eventos UI, navegación, rotación o posiciones.
+- Harness temporal: `C:/Users/sebyv/AppData/Local/Temp/opencode/AppCimucExplorarChecks_20261020.java`, ejecutado con el JDK existente y classpath `app/build/tmp/kotlin-classes/debug` + `kotlin-stdlib-2.0.21.jar` de la caché Gradle. No añade framework ni archivos de test a la app. Los casos reproducibles equivalentes están abajo.
+- Revisión estática de estado, alcance del ViewModel, rutas, callbacks y guardado de listas; `git diff --check` sin errores. Sin archivos eliminados ni cambios inesperados. **No se instaló ni ejecutó esta versión en teléfono/emulador**: las capturas del apartado anterior corresponden a la versión anterior, no acreditan los nuevos controles.
+
+### Casos reproducibles en celular / pendientes de validación visual
+1. Proyectos sin restricciones: 3 resultados. Buscar `  MATERIALES    RECICLADOS  `: solo Materiales reciclados. Buscar `mezclas recicladas`: el mismo resultado por descripción. Buscar `EFICIENCIA`: solo Eficiencia de procesos.
+2. Limpiar. Seleccionar Materiales: 2; añadir 2026: solo Diseño de mezclas. Añadir `ENSAYOS`: conserva ese proyecto. Cambiar año a 2025: 0 resultados con mensaje y acción de limpieza. Limpiar: vuelven los 3, categoría/año «Todos» y texto vacío.
+3. Buscar `zzzinexistente`: 0, sin confundirlo con catálogo vacío. Limpiar recupera 3. El catálogo vacío está comprobado en la función con listas de origen vacías; la muestra real no está vacía y no se borraron datos para simularlo.
+4. Capacidades: 2 resultados sin categoría/año. `MATERIALES` → Ensayos de materiales; `comparar escenarios` → Modelado de procesos. Integrantes: 2; `ANA` → Ana Ejemplo; `PROCESOS` → Luis Ejemplo por descripción. Abrir y volver desde cada detalle y sus proyectos relacionados.
+5. Dejar una consulta diferente en cada tipo y Materiales/2026 en Proyectos. Cambiar de selector y regresar: cada búsqueda debe mantenerse. Limpiar Capacidades no debe borrar las consultas de Proyectos/Integrantes.
+6. Con los 3 proyectos, desplazar hasta Diseño de mezclas, abrirlo y volver: revisar posición. Repetir alternando Inicio/Explorar y con otro tipo; no deben acumularse destinos al pulsar repetidamente la pestaña seleccionada.
+7. Con Integrantes seleccionado y una consulta escrita, rotar; volver a Proyectos y revisar sus filtros previos. Repetir en horizontal y fuente ampliada: controles desplazables, chips sin cortes, teclado sin tapar permanentemente el campo y acción Buscar/Atrás para ocultarlo.
+
+### Flujo para defensa oral
+Repositorio entrega las listas sintéticas → ViewModel conserva consultas/filtros y calcula resultados → StateFlow publica UiState → Explorar representa controles y listas → callbacks actualizan estado o navegan por IDs al detalle. El guardado Compose mantiene la posición de cada lista; no se envían ni persisten solicitudes.
+
+**Siguiente etapa pendiente:** formulario de contacto, resumen y confirmación simulada. No implementados aquí; registro, aportes y postulaciones siguen fuera del alcance de esta etapa. Sin commits ni push.
