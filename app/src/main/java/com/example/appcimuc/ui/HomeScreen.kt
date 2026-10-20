@@ -1,6 +1,8 @@
 package com.example.appcimuc.ui
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,8 +24,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 import com.example.appcimuc.R
+import com.example.appcimuc.model.AppInfo
+import com.example.appcimuc.ui.theme.AppNombreGrupoXTheme
+import com.example.appcimuc.viewmodel.MainViewModel
+
+// Lifecycle conserva el ViewModel en el propietario actual entre recomposiciones.
+@Composable
+fun HomeRoute(onExplore: () -> Unit) {
+    val mainViewModel: MainViewModel = viewModel()
+    HomeScreen(
+        appInfo = mainViewModel.appInfo,
+        onExplore = onExplore
+    )
+}
 
 /*
  * Guía 8 - Pantalla principal de la aplicación.
@@ -33,7 +49,7 @@ import com.example.appcimuc.R
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(appInfo: AppInfo, onExplore: () -> Unit) {
 
     // Scaffold entrega una estructura base para la pantalla.
     Scaffold(
@@ -42,7 +58,7 @@ fun HomeScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Mi App Kotlin")
+                    Text(text = "CIM UC")
                 }
             )
         }
@@ -54,6 +70,7 @@ fun HomeScreen() {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
 
             // Espacio uniforme entre los elementos.
@@ -65,24 +82,22 @@ fun HomeScreen() {
 
             // Texto principal.
             Text(
-                text = "¡Bienvenido!",
+                text = appInfo.title,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
 
             // Texto secundario.
             Text(
-                text = "Aplicación desarrollada con Jetpack Compose",
+                text = appInfo.message,
                 style = MaterialTheme.typography.bodyLarge
             )
 
             // Botón de ejemplo.
             Button(
-                onClick = {
-                    // Aquí se podrá agregar una acción posteriormente.
-                }
+                onClick = onExplore
             ) {
-                Text(text = "Presióname")
+                Text(text = "Explorar CIM UC")
             }
 
             // Imagen cargada desde res/drawable/logo.xml.
@@ -107,7 +122,7 @@ fun HomeScreen() {
                 )
 
                 Text(
-                    text = "Información",
+                    text = "Información CIM UC",
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -123,7 +138,13 @@ fun HomeScreen() {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    MaterialTheme {
-        HomeScreen()
+    AppNombreGrupoXTheme {
+        HomeScreen(
+            appInfo = AppInfo(
+                title = "Bienvenido a CIM UC",
+                message = "Prototipo de información de CIM UC."
+            ),
+            onExplore = {}
+        )
     }
 }

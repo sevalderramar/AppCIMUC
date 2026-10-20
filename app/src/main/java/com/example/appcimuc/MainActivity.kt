@@ -3,8 +3,8 @@ package com.example.appcimuc
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
-import com.example.appcimuc.ui.HomeScreen
+import com.example.appcimuc.ui.navigation.AppNavHost
+import com.example.appcimuc.ui.theme.AppNombreGrupoXTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -13,12 +13,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            // MaterialTheme entrega los estilos y colores
+            // El tema existente entrega los estilos y colores
             // utilizados por los componentes de la aplicación.
-            MaterialTheme {
+            AppNombreGrupoXTheme {
 
                 // Pantalla principal creada en HomeScreen.kt.
-                HomeScreen()
+                AppNavHost()
             }
         }
     }
