@@ -4,6 +4,8 @@ import com.example.appcimuc.model.Capacidad
 import com.example.appcimuc.model.Categoria
 import com.example.appcimuc.model.Integrante
 import com.example.appcimuc.model.Proyecto
+import com.example.appcimuc.model.Recurso
+import com.example.appcimuc.R
 
 // Muestra completamente sintética; no representa proyectos ni personas reales de CIM UC.
 internal object CatalogoEjemplo {
@@ -29,5 +31,9 @@ internal object CatalogoEjemplo {
         Proyecto("proy-mezclas", "Diseño de mezclas", "Comparación sintética de formulaciones mediante ensayos y modelado.",
             "cat-materiales", 2026, listOf("int-ana"), listOf("cap-ensayos", "cap-modelado"), estado = "En desarrollo",
             cuposDisponibles = 1, aceptaPostulaciones = true)
+    )
+    val recursos = listOf(
+        Recurso("rec-reciclaje", "proy-reciclaje", "Nota de materiales · demostración", R.raw.nota_reciclaje),
+        Recurso("rec-energia", "proy-energia", "Escenarios de energía · demostración", R.raw.nota_energia)
     )
 }

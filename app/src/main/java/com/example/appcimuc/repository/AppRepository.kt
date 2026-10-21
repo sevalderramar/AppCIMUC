@@ -27,6 +27,7 @@ class AppRepository {
         .orEmpty().mapNotNull(::getIntegrante)
     fun getCapacidades(proyectoId: String) = getProyecto(proyectoId)?.capacidadIds
         .orEmpty().mapNotNull(::getCapacidad)
+    fun getRecursos(proyectoId: String) = CatalogoEjemplo.recursos.filter { it.proyectoId == proyectoId }
     fun getProyectosDeIntegrante(id: String) = getProyectos().filter { id in it.integranteIds }
     fun getProyectosDeCapacidad(id: String) = getProyectos().filter { id in it.capacidadIds }
 }

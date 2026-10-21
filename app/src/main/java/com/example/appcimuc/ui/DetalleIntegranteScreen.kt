@@ -18,6 +18,8 @@ fun DetalleIntegranteScreen(
             NoEncontrado("Integrante")
         } else {
             Text(integrante.nombre, style = MaterialTheme.typography.headlineMedium)
+            integrante.cargo?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+            integrante.especialidad?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
             Text(integrante.descripcion, style = MaterialTheme.typography.bodyLarge)
             TituloSeccion("Proyectos relacionados")
             if (proyectos.isEmpty()) Text("Sin proyectos relacionados.")

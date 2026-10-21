@@ -27,6 +27,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -41,6 +45,7 @@ import com.example.appcimuc.model.Capacidad
 import com.example.appcimuc.model.Categoria
 import com.example.appcimuc.model.Integrante
 import com.example.appcimuc.model.Proyecto
+import com.example.appcimuc.model.Recurso
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
@@ -54,8 +59,13 @@ fun DetalleProyectoScreen(
     onContactar: (String) -> Unit,
     onUnirse: (String) -> Unit,
     onAportar: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    recursos: List<Recurso> = emptyList()
 ) {
+    var recursoAbiertoId by rememberSaveable(proyecto?.id) { mutableStateOf<String?>(null) }
+    recursos.find { it.id == recursoAbiertoId }?.let { recurso ->
+        RecursoProyectoDialog(recurso, onCerrar = { recursoAbiertoId = null })
+    }
     CatalogoLayout("Detalle del proyecto", onBack) {
         if (proyecto == null) {
             NoEncontrado("Proyecto")
@@ -91,9 +101,11 @@ fun DetalleProyectoScreen(
             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 IndicadorProyecto("Año", proyecto.anio.toString())
-                IndicadorProyecto("Disponibilidad", proyecto.cuposDisponibles?.let {
-                    "$it ${if (it == 1) "cupo" else "cupos"}"
-                } ?: "No informada")
+                IndicadorProyecto("Disponibilidad", when (val cupos = proyecto.cuposDisponibles) {
+                    null -> "Información no disponible"
+                    0 -> "Sin cupos"
+                    else -> "$cupos ${if (cupos == 1) "cupo disponible" else "cupos disponibles"}"
+                })
                 IndicadorProyecto("Integrantes", integrantes.size.toString())
             }
             TituloSeccion("Descripción")
@@ -114,7 +126,13 @@ fun DetalleProyectoScreen(
                 IntegranteProyectoCard(integrante, onClick = { onIntegrante(integrante.id) })
             }
             TituloSeccion("Recursos asociados")
-            Text("Sin recursos disponibles")
+            if (recursos.isEmpty()) Text("Sin recursos disponibles")
+            recursos.forEach { recurso ->
+                OutlinedButton(onClick = { recursoAbiertoId = recurso.id },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text("Abrir ${recurso.nombre}")
+                }
+            }
             TituloSeccion("Participa en este proyecto")
             Button(onClick = { onUnirse(proyecto.id) }, enabled = proyecto.puedePostular,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp), shape = MaterialTheme.shapes.medium,
@@ -159,8 +177,8 @@ private fun IntegranteProyectoCard(integrante: Integrante, onClick: () -> Unit) 
         Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Surface(modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).clearAndSetSemantics { },
-                shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.primary) {
+                shape = CircleShape, color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary) {
                 Box(Modifier.padding(12.dp), contentAlignment = Alignment.Center) {
                     Text(iniciales, style = MaterialTheme.typography.titleMedium)
                 }
@@ -168,6 +186,8 @@ private fun IntegranteProyectoCard(integrante: Integrante, onClick: () -> Unit) 
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(integrante.nombre, style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary)
+                integrante.cargo?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+                integrante.especialidad?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
                 if (integrante.descripcion.isNotBlank()) Text(integrante.descripcion, style = MaterialTheme.typography.bodyLarge)
                 Text("Ver integrante", style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary)

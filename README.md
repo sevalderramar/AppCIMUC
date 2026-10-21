@@ -264,3 +264,61 @@ Etapa detenida antes de preferencias y persistencia de semana 9. Sin commits ni 
 2. Pulsar cada chip y tarjeta de equipo; volver usando el único Volver o Atrás del sistema. Desde un listado filtrado, abrir un detalle y volver: revisar consulta, filtros y posición.
 3. Desplazar al final: recursos siguen visibles, Contactar abre el proyecto correcto y permite Resumen/Confirmación simulada. Los otros dos botones no reaccionan y muestran Próximamente.
 4. Repetir con título/fuente ampliados, horizontal y distintos anchos: estado separado del título, chips envolventes, tarjetas legibles y acceso a todas las acciones por scroll. La foto/categoría superpuesta no puede comprobarse con los proyectos actuales hasta disponer de imágenes locales.
+
+## Etapa — historia 2 y formularios adaptables (2026-10-20)
+
+**Estado vigente:** se conservan contacto/resumen y los flujos de participación que ya estaban en código al comenzar. Aporte y postulación son parte del MVP simulado autorizado en esta etapa, no «próximamente». Los apartados anteriores son históricos.
+
+### Realizado y archivos afectados
+- `ui/ParticipacionModales.kt`: ambos formularios usan la misma `ModalBottomSheet` de Material 3 1.3.1, expandida, con límites procedentes de la ventana real, no de `screenHeightDp` ni porcentajes de pantalla del teléfono. `safeDrawing` protege barras y cámara; el IME lo gestiona/consume Material, sin otro padding de teclado en la hoja.
+- Encabezado con nombre de proyecto y X separado del cuerpo. El cuerpo ocupa el espacio restante con `weight(fill = false)` y scroll, incluido el envío. Márgenes/espaciado se adaptan al alto disponible, sin reducir fuentes. En alturas extremas, el texto del encabezado tiene su propio scroll limitado a la mitad del área disponible; la X permanece fuera de ambos scrolls. Es una protección de accesibilidad, pendiente de validación visual.
+- Campo enfocado y cambios de altura del teclado solicitan `bringIntoView`; los intentos inválidos enfocan el primer error. Se conservan los validadores/estados separados y el ViewModel por ID/entrada del detalle: valores ante errores y rotación, cierre descarta borradores, reapertura vacía, confirmación única sin modificar cupos/equipo. No hay datos personales en rutas, DataStore, logs o archivos ni restauración del borrador tras muerte del proceso. Atrás del teclado se delega a la ventana nativa, sin interceptarlo con un BackHandler del formulario.
+- `ui/DetalleProyectoScreen.kt`: disponibilidad explícita (cupos / sin cupos / información no disponible), equipo calculado desde relaciones, avatar azul/blanco, recursos abribles. Conserva descripción completa, chips envolventes, título/estado separados, único Volver y contacto existente. `model/Integrante.kt` y `ui/DetalleIntegranteScreen.kt` admiten cargo/especialidad opcionales: los datos existentes siguen sin esos campos, no se inventan.
+- Nuevos `model/Recurso.kt`, `ui/RecursoProyectoDialog.kt` y `res/raw/nota_reciclaje.txt`, `nota_energia.txt`; ampliados `repository/CatalogoEjemplo.kt`, `AppRepository.kt` y `viewmodel/MainViewModel.kt`. Dos recursos sintéticos relacionados por proyecto, legibles dentro de la app, sin red ni botones de descarga ficticios. Diseño de mezclas muestra «Sin recursos disponibles». No se añadieron enlaces institucionales.
+- `ui/navigation/AppNavHost.kt`: entrega los recursos y recupera una entrada de detalle existente al seguir enlaces inversos por ID, en lugar de duplicarla. Búsquedas, filtros y posiciones del catálogo conservan sus propietarios/guardado anteriores.
+- `ui/theme/Theme.kt`, cinco TTF en `res/font` y dos licencias en `assets/licenses`: Plus Jakarta Sans para títulos e Inter para cuerpo, estáticas y locales, sin dependencia/servicio de fuentes. Paleta confirmada conservada. Procedencia y hashes: [fuentes](docs/validacion/historia2/Fuentes.md).
+- Nueva comprobación reproducible: [Historia2Checks.java](docs/validacion/historia2/Historia2Checks.java). README/DevLog ampliados sin sustituir sus registros. No se cambiaron versiones, paquete, SDK, Gradle o dependencias; sin commits/push.
+
+### Fuentes consultadas y pendientes de diseño
+- `Avance proyecto CIM UC/Historias de Usuarios.docx`: historia 2 exige título, descripción completa, año, estado, recursos y navegación hacia integrantes/capacidades. El diagrama contempla RECURSO → PROYECTO y cupos/aceptación; la implementación es una representación mínima en memoria, no una base relacional completa.
+- Los otros tres DOCX separan las propuestas del equipo (aportes/postulaciones y evaluación) del propósito general del caso. Aquí se implementa únicamente su simulación autorizada; no registro ni evaluación administrativa. Caso original y material curricular no disponibles: no se inventan sus exigencias.
+- **Sigue sin existir `docs/diseno/Revista musical independiente.make` ni una captura adjunta legible en esta sesión.** Búsqueda con ocultos sin `.make`, fuentes originales, insignia ni fotos. El enlace del DOCX solo devolvió una página «Figma», no código fuente del prototipo. No se ejecutaron scripts ni instrucciones del prototipo.
+- Las fuentes se obtuvieron de los autores, no del exportado. Insignia original, fotografías principales de los tres proyectos y contraste de formas/medidas con `.make` siguen pendientes. `imagenRes` conserva su soporte y fallback de categoría sin foto inventada. **No se declara fidelidad completa a la referencia ni estas ausencias como resueltas.**
+
+### Historia 2 — criterios de aceptación
+
+| Criterio del documento del equipo | Implementado | Verificado realmente | Pendiente |
+|---|---|---|---|
+| Tarjeta abre ficha con título, descripción completa, año, estado y recursos | Sí, por ID, recursos de demostración/estado vacío | Compilación; datos de tres proyectos; documentos dentro de APK | Pulsación y lectura visual en celular; fotos originales |
+| Ficha ofrece enlaces a integrantes y capacidades I+D asociados | Sí, chips y tarjetas con relaciones propias | Conjuntos de relaciones y consultas inversas en JVM | Pulsaciones, ajuste de chips y fuente ampliada |
+| Pulsar integrante/capacidad abre su detalle | Sí, callbacks por ID y retorno al detalle existente | Revisión estática de rutas/callbacks; integridad de IDs en JVM | Navegación real, Atrás y conservación de posición del catálogo |
+
+### Verificado realmente
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: **BUILD SUCCESSFUL**, última ejecución 48 tareas (13 ejecutadas, 35 al día). Lint: **0 errores, 8 advertencias existentes** (seis por versiones, icono ausente y `logo.xml` conservado sin uso).
+- `testDebugUnitTest`: **NO-SOURCE**, no hay suite JUnit integrada; no equivale a tests aprobados. Sin nueva dependencia de pruebas.
+- Harness reproducible nuevo: **80 comprobaciones JVM correctas** sobre clases debug reales: tres equipos/capacidades diferentes, relaciones inversas, recursos/estado vacío, nueve combinaciones cupos/aceptación (incluido desconocido), campos vacíos/espacios/correo, fuente libre/opcional, conservación ante errores, cierre/reapertura, idempotencia y no modificación de cupos/equipo. Abre el ZIP de la APK y lee ambos recursos y licencias empaquetados; no comprueba su presentación Android.
+- Reejecutados los harness previos revisados: participación **51**, detalle **29**, contacto **31**, filtrado **17** comprobaciones correctas. Son pruebas auxiliares JVM sin framework, con casos parcialmente superpuestos, no pruebas de interacción ni del lifecycle Android.
+- Git inicialmente limpio; diff revisado sin archivos eliminados ni eliminaciones inesperadas; `git diff --check` sin errores (avisos locales LF→CRLF). `adb devices`: sin dispositivos; `emulator -list-avds`: sin AVD. **No se instaló ni ejecutó esta versión ni se verificaron teclado, rotación, gestos, fuente ampliada o regreso en ejecución.**
+
+Para repetir el harness nuevo desde la raíz con el JDK y caché Gradle existentes (PowerShell), después de compilar:
+
+```powershell
+$stdlib = Get-ChildItem "$env:USERPROFILE\.gradle\caches\modules-2\files-2.1\org.jetbrains.kotlin\kotlin-stdlib\2.0.21" -Recurse -Filter 'kotlin-stdlib-2.0.21.jar' | Select-Object -First 1 -ExpandProperty FullName
+$rjar = Get-ChildItem 'app/build/intermediates' -Recurse -Filter 'R.jar' | Where-Object { $_.FullName -match 'processDebugResources' } | Select-Object -First 1 -ExpandProperty FullName
+java --class-path "app/build/tmp/kotlin-classes/debug;$stdlib;$rjar" docs/validacion/historia2/Historia2Checks.java
+```
+
+### Prueba pendiente en tu celular
+1. Instalar `app/build/outputs/apk/debug/app-debug.apk` (o Run desde Android Studio), sin desinstalar para no borrar datos. Abrir Explorar con una búsqueda/filtro; entrar al resultado y volver: revisar búsqueda, filtros y posición. Limpiar para recorrer los tres proyectos.
+2. Comparar: Materiales reciclados → 2025, finalizado, sin cupos, Ana/Luis, Ensayos; Eficiencia de procesos → 2026, 2 cupos, Luis, Modelado; Diseño de mezclas → 2026, 1 cupo, Ana, Ensayos/Modelado. Estos son datos sintéticos existentes, no cifras institucionales. La disponibilidad desconocida solo se comprueba en lógica, no se alteró un proyecto para forzar ese caso visual.
+3. Abrir chips/tarjetas y sus proyectos relacionados; usar Volver/Atrás. Un enlace al proyecto ya abierto debe recuperarlo sin añadir otra copia. Abrir los recursos de los primeros dos proyectos y leerlos sin conexión; cerrar con Cerrar/Atrás/exterior. Mezclas muestra «Sin recursos disponibles».
+4. En Eficiencia, abrir «Solicitar unirse»: comprobar título/proyecto/X, enviar vacío, espacios y correo `invalido`. Deben mostrarse errores junto al campo, conservar datos y enfocar el primero. Completar con datos ficticios y `persona@example.test`: confirmación azul con verificación y «Entendido», explícitamente simulada/sin correos. Pulsar rápidamente dos veces; comprobar que los 2 cupos y el integrante no cambian.
+5. Repetir «Entregar información»: cuatro obligatorios, fuente vacía válida; repetir con una referencia bibliográfica, no URL. Botón/confirmación naranjas. Entendido regresa al mismo detalle. Reciclaje no permite postular, pero sí aportar/contactar.
+6. Para ambos formularios: escribir borrador, cerrar con X, exterior/gesto y Atrás sin enviar; reabrir vacío. Con teclado abierto, Atrás debe ocultarlo antes de cerrar la hoja. Cambiar entre campos, desplazar hasta Enviar y comprobar foco visible y encabezado dentro de la superficie.
+7. Rotar con borrador, con errores y con confirmación: conservar estado mientras viva el detalle; no repetir envío. Repetir en horizontal y con fuente del sistema ampliada. Si el alto es extremo, desplazar el texto del encabezado en su zona; la X sigue accesible y los campos tienen su propio scroll.
+8. Probar Contactar → Resumen → Editar → Confirmación simulada para comprobar la funcionalidad conservada. Volver al catálogo, alternar Inicio/Explorar y comprobar estado/posición y ausencia de destinos acumulados.
+
+### Flujo para defensa oral
+Repositorio entrega proyecto/relaciones/recursos por ID → ViewModel publica estado en memoria → UI muestra ficha y formulario compartido → validación local conserva errores o cambia una sola vez a confirmación → Entendido/cerrar limpia el borrador sin salir del proyecto. Los documentos de demostración se leen desde la APK. Ninguna operación envía correos, registra postulantes ni cambia cupos.
+
+Mensaje de commit sugerido (no ejecutado): `Completa recursos de ficha y adapta formularios de participación simulada`.

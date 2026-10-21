@@ -9,9 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.appcimuc.R
 
 // Paleta confirmada por el usuario. El contenedor .make no está disponible localmente.
 private val Azul = Color(0xFF1A3C5E)
@@ -46,21 +48,38 @@ private val CimColors = lightColorScheme(
     surfaceContainerHigh = FondoSecundario, surfaceContainerHighest = FondoSecundario
 )
 
-// Sustitución temporal sin red: faltan los archivos locales de Plus Jakarta Sans e Inter.
-// Tamaños/pesos conservados de la etapa Android anterior; no recuperados del exportado.
-private val Titulos = FontFamily.SansSerif
-private val Cuerpo = FontFamily.SansSerif
+// Fuentes estáticas locales de sus autores; licencias SIL OFL en assets/licenses.
+// Tamaños conservados de Android: no se atribuyen al .make ausente.
+private val Titulos = FontFamily(
+    Font(R.font.plus_jakarta_sans_regular, FontWeight.Normal),
+    Font(R.font.plus_jakarta_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.plus_jakarta_sans_bold, FontWeight.Bold)
+)
+private val Cuerpo = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium)
+)
+private val BaseTypography = Typography()
 private val CimTypography = Typography(
+    displayLarge = BaseTypography.displayLarge.copy(fontFamily = Titulos),
+    displayMedium = BaseTypography.displayMedium.copy(fontFamily = Titulos),
+    displaySmall = BaseTypography.displaySmall.copy(fontFamily = Titulos),
+    headlineLarge = BaseTypography.headlineLarge.copy(fontFamily = Titulos),
+    headlineSmall = BaseTypography.headlineSmall.copy(fontFamily = Titulos),
     headlineMedium = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.Bold,
         fontSize = 28.sp, lineHeight = 36.sp),
     titleLarge = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp, lineHeight = 30.sp),
     titleMedium = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.Bold,
         fontSize = 18.sp, lineHeight = 26.sp),
+    titleSmall = BaseTypography.titleSmall.copy(fontFamily = Titulos),
     bodyLarge = TextStyle(fontFamily = Cuerpo, fontSize = 16.sp, lineHeight = 24.sp),
+    bodyMedium = BaseTypography.bodyMedium.copy(fontFamily = Cuerpo),
     bodySmall = TextStyle(fontFamily = Cuerpo, fontSize = 12.sp, lineHeight = 18.sp),
     labelLarge = TextStyle(fontFamily = Titulos, fontWeight = FontWeight.Bold,
-        fontSize = 14.sp, lineHeight = 20.sp)
+        fontSize = 14.sp, lineHeight = 20.sp),
+    labelMedium = BaseTypography.labelMedium.copy(fontFamily = Cuerpo),
+    labelSmall = BaseTypography.labelSmall.copy(fontFamily = Cuerpo)
 )
 
 private val CimShapes = Shapes(

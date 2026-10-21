@@ -79,6 +79,7 @@ class MainViewModel(
     fun capacidad(id: String) = repository.getCapacidad(id)
     fun integrantes(proyectoId: String) = repository.getIntegrantes(proyectoId)
     fun capacidades(proyectoId: String) = repository.getCapacidades(proyectoId)
+    fun recursos(proyectoId: String) = repository.getRecursos(proyectoId)
     fun proyectosDeIntegrante(id: String) = repository.getProyectosDeIntegrante(id)
     fun proyectosDeCapacidad(id: String) = repository.getProyectosDeCapacidad(id)
 }

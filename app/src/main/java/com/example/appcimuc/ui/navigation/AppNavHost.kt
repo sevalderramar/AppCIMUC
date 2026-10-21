@@ -65,8 +65,17 @@ fun AppNavHost() {
         }
     }
     val onBack: () -> Unit = { navController.popBackStack() }
+    // Si un enlace inverso apunta a un detalle ya abierto, recupera esa entrada
+    // y su estado en lugar de añadir otra copia a la pila.
+    val abrirDetalle: (String) -> Unit = { ruta ->
+        teclado?.hide()
+        foco.clearFocus()
+        val existente = runCatching { navController.getBackStackEntry(ruta) }.getOrNull()
+        if (existente != null) navController.popBackStack(ruta, false)
+        else navController.navigate(ruta) { launchSingleTop = true }
+    }
     val onProyecto: (String) -> Unit = { id ->
-        navController.navigate(Routes.proyecto(id)) { launchSingleTop = true }
+        abrirDetalle(Routes.proyecto(id))
     }
 
     // Las pantallas gestionan el área superior; la barra principal gestiona la inferior.
@@ -110,8 +119,8 @@ fun AppNavHost() {
                     onAnio = mainViewModel::seleccionarAnio,
                     onLimpiar = mainViewModel::limpiarExplorar,
                     onProyecto = onProyecto,
-                    onCapacidad = { navController.navigate(Routes.capacidad(it)) { launchSingleTop = true } },
-                    onIntegrante = { navController.navigate(Routes.integrante(it)) { launchSingleTop = true } },
+                    onCapacidad = { abrirDetalle(Routes.capacidad(it)) },
+                    onIntegrante = { abrirDetalle(Routes.integrante(it)) },
                     onBack = onBack
                 )
             }
@@ -127,8 +136,9 @@ fun AppNavHost() {
                     categoria = proyecto?.let { mainViewModel.categoria(it.categoriaId) },
                     integrantes = mainViewModel.integrantes(id),
                     capacidades = mainViewModel.capacidades(id),
-                    onIntegrante = { navController.navigate(Routes.integrante(it)) { launchSingleTop = true } },
-                    onCapacidad = { navController.navigate(Routes.capacidad(it)) { launchSingleTop = true } },
+                    recursos = mainViewModel.recursos(id),
+                    onIntegrante = { abrirDetalle(Routes.integrante(it)) },
+                    onCapacidad = { abrirDetalle(Routes.capacidad(it)) },
                     onContactar = { proyectoId ->
                         if (navController.currentDestination?.route == Routes.PROYECTO) {
                             navController.navigate(Routes.contacto(proyectoId)) { launchSingleTop = true }

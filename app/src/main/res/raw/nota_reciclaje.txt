@@ -1,0 +1,10 @@
+MATERIALES RECICLADOS — DOCUMENTO DE DEMOSTRACIÓN
+
+Proyecto: Materiales reciclados (proy-reciclaje)
+Año: 2025
+
+Esta nota sintética ilustra un recurso asociado a una ficha. No contiene resultados de investigación ni recomendaciones técnicas del CIM UC.
+
+El ejemplo considera comparar mezclas recicladas mediante ensayos de materiales. Su equipo ficticio está compuesto por Ana Ejemplo y Luis Ejemplo.
+
+Alcance: reconocer las relaciones entre el proyecto, su equipo y la capacidad de ensayos. No utilizar este texto para diseño, construcción ni decisiones profesionales.
