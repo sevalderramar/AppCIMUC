@@ -1,0 +1,1 @@
+58 comprobaciones JVM de exploración/contacto correctas; no prueban UI ni lifecycle.

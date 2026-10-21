@@ -294,3 +294,25 @@
 - Datos de formularios pueden perderse tras proceso: comportamiento documentado y deliberado por privacidad. Rotación se implementa con retención del VM, no se da por probada visualmente. Task snapshot requiere que Android haya guardado el estado; OEM puede no conservarlo. DataStore mantiene preferencias entre inicios nuevos mientras exista su archivo, sin prometer comportamiento de reinstalación/backup.
 - Guía de semana 9/material original sigue pendiente; no se inventó contenido. Tabla completa y flujo oral documentados: entradas pequeñas de tarea → VM/proyección → repositorio por IDs; posiciones propiedad de Compose; DataStore solo entre inicios sin snapshot; formularios temporales sin eventos reproducibles.
 - Commit sugerido, no ejecutado: `Distingue estado restaurable de exploración y preferencias persistentes`.
+
+## Pruebas del MVP y evidencia real (2026-10-21)
+
+### Realizado
+- Git limpio al inicio, sin diff previo. Leídos AGENTS, historias de usuario DOCX, README/DevLog vigentes, código de preferencias/formularios/detalle y configuración de pruebas. Se mantienen HU1 búsqueda, HU2 detalle/relaciones, HU3 contacto y HU4 navegación/legibilidad; postulación/aporte se identifican como propuestas del equipo autorizadas, no requisitos curriculares inventados.
+- Creado `docs/PRUEBAS_MVP.md` con 30 casos y todos los campos solicitados; cada caso marca Aprobado/Fallido/No ejecutado con alcance explícito. Nuevo directorio `docs/validacion/mvp-20261021` con salidas reales, identificación de APK/commit, instalación/apertura y una captura/jerarquía accesible de Inicio. README ampliado sin reemplazar historial.
+- No se añadió otra prueba de lógica: los riesgos revisados ya tenían cobertura en los cuatro harness existentes y no se reprodujo un defecto concreto que justificara cambiar producción. No se rediseñó, actualizó dependencia, modificó catálogo o amplió funcionalidad.
+
+### Verificaciones reales
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: BUILD SUCCESSFUL, 1 s, 48 tareas (1 ejecutada, 47 al día). Informe lint copiado: **0 errores / 9 advertencias** conocidas (siete de versiones, icono ausente, logo.xml no utilizado y conservado). UnitTest **NO-SOURCE**: no una suite aprobada.
+- Reejecutados y guardados: **58** checks JVM de MvpChecks, **86** Historia2Checks, **46** preferencias/DataStore real y **31** estado/VM/handle, correctos. Casos parcialmente superpuestos; no se presentan como pruebas de Compose, navegación, foco o lifecycle real.
+- REA-NX9 Android 15 conectado; sin AVD. Ajustes iniciales leídos: fuente 0.85, vertical/rotación manual. `adb install -r`: Success; `am start -W`: Status ok, arranque COLD, 2206 ms. No desinstalación ni borrado de datos. Capturados e inspeccionados `01-inicio.png` y XML reales: CIM UC, presentación/CTA, totales 3/2/2, destacados y barra visibles en esta configuración.
+- Recorrido posterior incompleto: el selector no confirmó el CTA y no pulsó una ubicación supuesta. En el siguiente intento la guarda detectó que AppCIMUC no estaba al frente y detuvo las interacciones. `dispositivo.txt` registra observación real posterior `AppCIMUCAlFrente=False`. No se capturaron otras apps. No se trataron estos bloqueos como defecto del producto ni como navegación aprobada.
+- No se cambiaron ajustes de fuente/rotación, no se rellenaron formularios, no se envió nada ni se hizo kill/force-stop. Los datos previstos para los casos pendientes son exclusivamente ficticios. Helper temporal propio `PruebasMvpDevice_20261021.ps1`, sin ejecutar código del prototipo.
+- Resultado de matriz: **8 Aprobados, 0 Fallidos reproducidos, 22 No ejecutados**. Un aprobado de JVM no aprueba el recorrido Android equivalente. Solo UI-01 (presentación visible de Inicio) está aprobado en dispositivo; DEV-01 cubre instalación/apertura.
+- Evidencias identificadas por SHA-256 de APK y HEAD Git, conservadas sin inventar capturas/resultados. Diff revisado y git diff --check sin errores; sin eliminaciones inesperadas. Sin cambios de producción ni versiones; sin commits/push.
+
+### Pendiente y entrega
+- Completar los 22 casos No ejecutados según `docs/PRUEBAS_MVP.md`; lista de capturas por obtener separada de la única captura nueva existente. Requiere teléfono dedicado al recorrido y estable al frente. Fuente ampliada/horizontal, IME, rotación, posición, procesos y duplicados necesitan evidencia específica, no deducción de compilación ni captura estática.
+- Mantener separación: recomposición ≠ Activity recreada ≠ proceso con tarea restaurable ≠ inicio nuevo con DataStore. No borrar datos/desinstalar ni usar No conservar actividades como prueba de proceso. No se declara MVP completamente aprobado.
+- Advertencias de lint y ausencia de Make/insignia/fotos originales permanecen; no se solucionaron actualizando versiones o inventando recursos. Flujo oral de la entrega: requisitos → caso/precondiciones → ejecución → evidencia → estado real, distinguiendo prueba de lógica y prueba de interacción.
+- Commit sugerido, no ejecutado: `Documenta pruebas del MVP y registra evidencia real de Inicio`.

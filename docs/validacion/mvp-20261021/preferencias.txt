@@ -1,0 +1,1 @@
+46 comprobaciones de DataStore real/restauración/VM correctas; no prueban UI ni lifecycle Android.

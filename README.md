@@ -420,3 +420,16 @@ Este apartado precisa la duración del estado y actualiza los ejemplos de «rein
 - Inicio nuevo de preferencias: quitar solo la tarea de Recientes y abrir desde el icono; consultas vacías y filtros de DataStore si recordar está activado. No borrar datos ni desinstalar. «No conservar actividades» no equivale a muerte del proceso.
 - Guía de semana 9 continúa ausente; no se inventa su contenido. Fuentes/diseño/recursos existentes conservados. No se garantiza restauración después de cierre forzado, tarea eliminada o reinstalación.
 - Commit sugerido, no ejecutado: `Distingue estado restaurable de exploración y preferencias persistentes`.
+
+## Registro de pruebas del MVP — 2026-10-21
+
+### Realizado y comprobado
+- Nuevo [docs/PRUEBAS_MVP.md](docs/PRUEBAS_MVP.md): 30 casos con requisito/historia, precondición, pasos, esperado, obtenido, estado y evidencia. **8 Aprobados, 0 Fallidos reproducidos y 22 No ejecutados**, distinguiendo lógica de interacción Android. No es una aprobación completa del MVP.
+- `assembleDebug`, `lintDebug`, `testDebugUnitTest`: BUILD SUCCESSFUL; lint 0 errores / 9 advertencias conocidas. UnitTest NO-SOURCE, sin suite integrada aprobada. Harness existentes: 58 lógica MVP, 86 historia 2/participación, 46 preferencias y 31 estado, correctos. Salidas reales conservadas en `docs/validacion/mvp-20261021`.
+- Instalación sin borrar datos y apertura en REA-NX9/Android 15 correctas. Captura nueva real de Inicio (`01-inicio.png` y XML) inspeccionada con fuente 0.85/vertical. El intento posterior de navegación quedó incompleto y la app dejó de estar al frente; se detuvieron las interacciones. No se dedujo navegación correcta de la compilación ni se atribuyó al producto un fallo del selector de prueba.
+- Git limpio al inicio; no se identificó defecto reproducido ni riesgo nuevo sin cobertura que justificara modificar producción o añadir pruebas. Solo informe/evidencias y ampliación de README/DevLog; sin cambios de diseño, dependencias, funcionalidades, commits ni push. Diff revisado sin eliminaciones inesperadas.
+
+### Pendiente
+- Los 22 casos No ejecutados incluyen suite Gradle sin fuentes y recorridos Android de navegación, filtros/limpieza, relaciones/recursos, formularios, duplicados, teclado, rotación, fuente ampliada, DataStore y proceso restaurable. El informe contiene pasos y lista explícita de capturas **por obtener**, no archivos inventados.
+- Permanecen advertencias de lint y fuentes originales ausentes (Make/insignia/fotos). Las capturas históricas no prueban esta versión; una captura estática tampoco prueba duplicados o muerte de proceso.
+- Commit sugerido, no realizado: `Documenta pruebas del MVP y registra evidencia real de Inicio`.

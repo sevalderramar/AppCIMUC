@@ -1,0 +1,7 @@
+Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.example.appcimuc/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: com.example.appcimuc/.MainActivity
+TotalTime: 2206
+WaitTime: 2210
+Complete
