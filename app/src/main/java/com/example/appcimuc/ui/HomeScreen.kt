@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
 
 import com.example.appcimuc.model.AppInfo
 import com.example.appcimuc.model.Categoria
@@ -43,7 +44,7 @@ import com.example.appcimuc.viewmodel.MainViewModel
 @Composable
 fun HomeRoute(
     onExplore: () -> Unit,
-    mainViewModel: MainViewModel = viewModel(),
+    mainViewModel: MainViewModel = viewModel(factory = MainViewModel.factory(LocalContext.current.applicationContext)),
     onProyecto: (String) -> Unit = {}
 ) {
     HomeScreen(

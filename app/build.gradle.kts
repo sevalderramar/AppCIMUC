@@ -36,6 +36,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.10.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation("androidx.navigation:navigation-compose:2.8.5")
+    // Preferences 1.1.1: Kotlin 1.8.22/coroutines 1.7.3, compatibles con la base.
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.ui:ui")

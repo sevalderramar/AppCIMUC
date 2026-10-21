@@ -342,3 +342,81 @@ Mensaje de commit sugerido (no ejecutado): `Completa recursos de ficha y adapta 
 - Continúan ausentes `.make`, insignia original y fotografías de proyectos; las fuentes TTF y recursos de demostración sí existen y se conservan. No se declara recuperación de recursos de Figma que no están disponibles ni fidelidad completa a su diseño.
 - Ejecutar los ocho casos de [prueba manual](docs/validacion/mvp/Auditoria.md#pruebas-manuales-pendientes-en-celular): búsqueda/filtros, regreso y posición, recursos/relaciones, Contacto/Resumen/Editar, postulación, aporte, cierre/rotación y teclado/fuente ampliada/horizontal. Detener la prueba si otra app está al frente.
 - Mensaje de commit sugerido, no ejecutado: `Documenta auditoría del MVP y amplía comprobaciones de lógica`.
+
+## Preferencia — Recordar filtros de proyectos (2026-10-21)
+
+Esta sección actualiza la prohibición temporal de DataStore de etapas anteriores: **se usa ahora exclusivamente para la preferencia autorizada**, no para entidades o solicitudes.
+
+### Realizado
+- En Explorar → Proyectos hay un control accesible «Recordar filtros de proyectos» con la aclaración «Recuerda solo categoría y año. No guarda la búsqueda.». Está desactivado por defecto. No aparece en Capacidades/Integrantes ni cambia sus búsquedas o limpieza.
+- Nueva clase `repository/PreferenciasFiltrosRepository.kt`: encapsula lecturas/escrituras suspend de Preferences DataStore. El delegate privado de nivel superior sobre applicationContext mantiene **una instancia por archivo**. El archivo privado es `files/datastore/filtros_proyectos.preferences_pb`.
+- Se persisten solo tres claves: `recordar_filtros_proyectos` (Boolean), `categoria_proyecto` (ID String opcional), `anio_proyecto` (Int opcional). Desactivar escribe false y elimina categoría/año **sin cambiar los filtros activos de sesión**. Con «Todos», las claves de ese filtro no se almacenan.
+- **No se persisten** búsquedas libres de ningún tipo, selección de tipo/posición, catálogos, entidades, nombres, correos, mensajes, motivaciones, aportes, contraseñas ni solicitudes/historial. Los formularios siguen exclusivamente en memoria como antes. No hay Room, SharedPreferences, backend ni correos reales.
+- `MainViewModel` expone un segundo UiState/StateFlow readonly para carga, valor confirmado, guardado y error. Restauración valida cada categoría/año contra las opciones actuales: valor inexistente → «Todos», sin descartar el otro filtro válido. Un inicio nuevo deja búsquedas vacías.
+- La carga inicial solo lee: **no escribe defaults** sobre valores guardados. Si el usuario editó filtros mientras esperaba la lectura, se respetan sus cambios y se guardan después de leer únicamente si recordar estaba activado. Una búsqueda libre no cuenta como cambio persistible.
+- Escrituras explícitas y asíncronas, no desde recomposiciones. Mientras se guarda se deshabilitan temporalmente el control y los filtros de proyectos/limpieza para no intercalar operaciones; la búsqueda, navegación y otros tipos continúan disponibles. El valor del interruptor cambia solo después de una escritura correcta. No hay mensaje de éxito anticipado.
+- Errores de lectura/escritura visibles junto al control con «Reintentar preferencias». Leer con error no convierte el archivo en defaults ni bloquea filtros de sesión. Escribir con error conserva filtros de sesión y el último valor confirmado; reintentar usa los filtros actuales. Una desactivación fallida no se representa como eliminación correcta. CancellationException se propaga sin ocultar la cancelación.
+- `ui/navigation/AppNavHost.kt` crea el MainVM compartido con factory explícita; `HomeRoute` conserva su API con el mismo factory en su fallback. Los composables no leen/escriben DataStore. Paleta, fuentes, pantallas, contacto, participación y relaciones preservados.
+
+### Dependencia autorizada y archivos
+- Única dependencia directa agregada: `androidx.datastore:datastore-preferences:1.1.1`. Su POM Android oficial declara Kotlin 1.8.22 y coroutines 1.7.3; evita exigir cambios a la base. Resolución verificada: DataStore 1.1.1 y Okio 3.4.0 transitivo; Kotlin stdlib **2.0.21**, coroutines **1.7.3**, Compose UI **1.7.6**, Lifecycle VM Compose **2.8.7**. No se actualizaron Kotlin, Compose/BOM, Gradle/AGP, Java ni SDK.
+- Creados `model/PreferenciasFiltrosProyectos.kt`, `repository/PreferenciasFiltrosRepository.kt`, `viewmodel/PreferenciasFiltrosUiState.kt` y `docs/validacion/preferencias/{PreferenciasChecks.kt,EjecutarChecks.ps1}`.
+- Modificados `app/build.gradle.kts`, `viewmodel/MainViewModel.kt`, `ui/ExplorarScreen.kt`, `ui/HomeScreen.kt`, `ui/navigation/AppNavHost.kt`, README y DevLog. Sin borrados, renombres, commits ni push. No se reemplazó contenido documental previo.
+
+### Comprobado realmente
+- `gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest --console=plain`: **BUILD SUCCESSFUL**. Lint: **0 errores / 9 advertencias** (las 8 anteriores y una por versión nueva disponible de DataStore). Se conservó la versión elegida; no se silenciaron avisos. En la primera compilación se informó que `libdatastore_shared_counter.so` se empaqueta sin retirar símbolos; no impidió compilar.
+- `testDebugUnitTest`: **NO-SOURCE**, no se declara una suite Gradle inexistente como aprobada. Se reutilizó la infraestructura auxiliar JVM sin añadir framework/dependencia de pruebas.
+- `docs/validacion/preferencias/EjecutarChecks.ps1`: **46 comprobaciones correctas**. Usa DataStore real en archivos temporales y los métodos reales del VM con scope controlado; cubre reapertura, política de restauración y errores simulados. No equivale a probar el lifecycle Android ni Compose.
+- Prueba real de DataStore: valor inicial, escritura, cierre de su scope y nueva instancia **secuencial** sobre el mismo archivo, recuperación, eliminación física de claves al desactivar y solo tres claves permitidas. Política pura/VM: filtros inválidos por separado, búsqueda no guardada, lectura tardía sin sobrescribir defaults, sesión frente a disco, errores/reintentos y no escritura desde otros tipos.
+- Regresión de los harness existentes: **58** comprobaciones de exploración/contacto y **86** de detalle/participación/recursos, correctas. El catálogo, las relaciones y documentos empaquetados permanecen coherentes.
+- Revisión de diff y `git diff --check` sin errores; sin eliminaciones inesperadas. **No se instaló ni se ejecutó esta versión en celular durante esta etapa**: los resultados de instalación de la auditoría anterior no prueban este control.
+
+| Caso solicitado | Evidencia ejecutada | Pendiente en celular |
+|---|---|---|
+| Desactivado por defecto | DataStore real vacío y VM nuevo | Observar el interruptor en primera apertura |
+| Activar/elegir/reabrir conserva filtros | Escritura/reapertura real + nuevo VM | Cerrar proceso Android y abrir |
+| Desactivar y reiniciar usa Todos | Claves eliminadas + nuevo VM; sesión conservada | Reinicio real y comprobación visual |
+| Categoría/año inválidos | Política pura con valores inexistentes y válidos mezclados | Sin control de depuración añadido; caso cubierto en JVM |
+| Búsqueda no se conserva en inicio nuevo | Solo tres claves y nuevo VM con texto vacío | Escribir y reiniciar el proceso |
+| Catálogo y relaciones funcionan | Harness de regresión 58/86 y filtros restaurados aplicados | Navegación/chips/equipo/recursos |
+
+Para repetir desde la raíz, después de compilar: `& ./docs/validacion/preferencias/EjecutarChecks.ps1`. Usa el compilador Kotlin 2.0.21, coroutines, Android stubs y jars/AAR de la caché Gradle existente; extrae/compila solo en `%LOCALAPPDATA%/Temp/opencode`, sin descargar otra infraestructura. Inyección de scope del VM solo en el harness; la app utiliza viewModelScope.
+
+### Prueba manual en celular / pendientes
+1. Instalar la APK debug sin desinstalar ni borrar datos. Abrir Explorar → Proyectos: en una primera ejecución sin preferencias guardadas el interruptor está apagado; revisar texto completo, área táctil, fuente ampliada y horizontal.
+2. Activar, esperar a que desaparezca «Guardando cambios…», elegir Materiales y 2026, esperando cada escritura. Buscar `ENSAYOS`: debe quedar Diseño de mezclas. Abrir su detalle, capacidades/integrante/recursos y volver: filtros/consulta de sesión conservados.
+3. Cerrar el **proceso** (no basta rotar o ir al inicio) y abrir de nuevo: interruptor activado, Materiales/2026 restaurados, **búsqueda vacía**. Comprobar el mismo único proyecto sin escribir búsqueda.
+4. Desactivar y esperar: categoría/año siguen activos en esa sesión. Cerrar proceso y abrir: apagado, ambos filtros «Todos», tres proyectos, búsqueda vacía. No hace falta eliminar datos de la app.
+5. Con recordar apagado, cambiar filtros y reiniciar: no deben recuperarse. Con recordar activado, usar Limpiar: debe guardar «Todos». Capacidades/Integrantes conservan búsquedas de sesión al cambiar de tipo, pero no después de un inicio nuevo.
+6. Durante carga/guardado revisar el estado accesible y ausencia de éxito prematuro. Los errores de almacenamiento y los valores inválidos se verificaron por inyección en JVM; no se dañó el archivo del teléfono para forzarlos. Probar cierre/recreación real y no afirmar que la escritura terminó si se interrumpe el proceso mientras indica Guardando.
+- **Guía de semana 9 no disponible:** búsqueda local de materiales con ocultos sin guía/rúbrica/README docente identificable. La implementación corresponde al alcance explícito del usuario; no se inventa contenido curricular ni se certifica equivalencia con una guía ausente. `.make`, insignia y fotos originales conservan sus pendientes anteriores, sin rediseño.
+
+### Flujo para defensa oral
+Factory entrega repositorio de preferencias al VM compartido → VM lee DataStore una vez, valida IDs/año y filtra el catálogo → StateFlow representa preferencia/carga/error → usuario emite evento → VM solicita una escritura atómica → solo después de éxito confirma el interruptor. Desactivar elimina claves de disco pero no cambia la sesión; no se guarda ningún texto libre ni dato de formularios.
+
+Mensaje de commit sugerido, no ejecutado: `Agrega preferencia DataStore para recordar filtros de proyectos`.
+
+## Estado temporal, restaurable y persistente — 2026-10-21
+
+Este apartado precisa la duración del estado y actualiza los ejemplos de «reinicio» anteriores: **restaurar la misma tarea no es un inicio nuevo**. La búsqueda puede restaurarse dentro de esa tarea, pero nunca se guarda como preferencia permanente.
+
+### Realizado
+- Conservados los cambios existentes de DataStore, inicialmente modificados/no seguidos. Sin nuevas dependencias, cambios de versiones, borrados o rediseño.
+- Nuevo `viewmodel/ExplorarEstadoGuardado.kt`: SavedStateHandle guarda solo tipo, tres consultas de hasta 500 caracteres cada una, categoría ID, año y marcador de presencia. Tipo/filtros/valores inválidos tienen fallback seguro. No se serializan UiState completo, listas, imágenes, entidades ni borradores.
+- `MainViewModel.kt`: factory con `CreationExtras.createSavedStateHandle()`, entradas autoritativas en el handle y proyección readonly recalculada desde el repositorio. Tarea restaurada > DataStore > defaults. Una lectura tardía respeta una edición actual; cargar una tarea no escribe sus valores en DataStore salvo edición explícita que corresponda guardar.
+- Posiciones conservadas con los **tres rememberLazyGridState existentes** (Saver índice/offset), sin duplicarlas en el VM o DataStore. Navigation ya guarda destinos por ID; los datos se resuelven otra vez y los desconocidos muestran «no encontrado».
+- Formularios conservados: VM por flujo/entrada, datos/errores/pasos solo en memoria. Rotación retiene esos VMs; proceso nuevo puede iniciar contacto vacío o participación cerrada. No se restauran pasos/eventos de envío. Contacto tiene una única ruta: al recuperar su ID sin borrador, arranca en Formulario, no en Resumen inválido.
+- Tabla completa de **estado → propietario → mecanismo → duración**, precedencia y pasos separados en [Estado y restauración](docs/validacion/estado/EstadoYRestauracion.md).
+
+### Comprobado
+- `assembleDebug`, `lintDebug`, `testDebugUnitTest`: **BUILD SUCCESSFUL**. Lint: **0 errores / 9 advertencias** conocidas. UnitTest: **NO-SOURCE**, sin suite integrada nueva.
+- Nuevo `docs/validacion/estado/EstadosChecks.kt`: **31 comprobaciones JVM correctas**, incluidos nuevos VMs/handles, prioridad con Todos/recordar apagado, IDs/filtros obsoletos, carga tardía, consultas pequeñas y formularios nuevos sin datos/eventos. Simular un nuevo handle no prueba la serialización Bundle ni una muerte de proceso Android.
+- Regresiones: **46** checks de preferencias/DataStore real, **58** exploración/contacto y **86** detalle/participación/recursos, correctos. Runner de preferencias ampliado para aceptar el nuevo harness y usar dependencias savedstate ya presentes en caché; sin framework agregado.
+- Instalación `adb install -r`: Success y MainActivity observada al frente con PID. Después otra ventana tomó el frente; la guarda detuvo la interacción. **No se completaron pruebas Android de recomposición, rotación, navegación ni proceso**. No se hizo kill/force-stop, no se cambiaron ajustes, no se borraron datos ni se desinstaló la app.
+- Diff revisado sin eliminaciones inesperadas; `git diff --check` sin errores. README/DevLog ampliados conservando historial. Sin commits/push.
+
+### Pendiente
+- Ejecutar por separado los cinco procedimientos de [prueba manual](docs/validacion/estado/EstadoYRestauracion.md#pasos-manuales-separados-sin-borrar-datos-ni-desinstalar). Para proceso restaurable: HOME/onStop → `am kill` solo del paquete en segundo plano → comprobar PID desaparecido → misma tarjeta de Recientes/PID nuevo. Si el OEM no termina el proceso o no conserva la tarea, no dar el caso por aprobado.
+- Inicio nuevo de preferencias: quitar solo la tarea de Recientes y abrir desde el icono; consultas vacías y filtros de DataStore si recordar está activado. No borrar datos ni desinstalar. «No conservar actividades» no equivale a muerte del proceso.
+- Guía de semana 9 continúa ausente; no se inventa su contenido. Fuentes/diseño/recursos existentes conservados. No se garantiza restauración después de cierre forzado, tarea eliminada o reinstalación.
+- Commit sugerido, no ejecutado: `Distingue estado restaurable de exploración y preferencias persistentes`.

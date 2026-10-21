@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.example.appcimuc.R
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,7 +48,9 @@ import com.example.appcimuc.ui.ParticipacionModales
 fun AppNavHost() {
     val navController = rememberNavController()
     // Propietario Activity: catálogo estable durante todos los recorridos de este host.
-    val mainViewModel: MainViewModel = viewModel()
+    val appContext = LocalContext.current.applicationContext
+    val mainFactory = remember(appContext) { MainViewModel.factory(appContext) }
+    val mainViewModel: MainViewModel = viewModel(factory = mainFactory)
     val teclado = LocalSoftwareKeyboardController.current
     val foco = LocalFocusManager.current
     val currentEntry by navController.currentBackStackEntryAsState()
@@ -111,6 +114,7 @@ fun AppNavHost() {
             }
             composable(Routes.EXPLORAR) {
                 val estado by mainViewModel.explorarUiState.collectAsState()
+                val preferencias by mainViewModel.preferenciasFiltrosUiState.collectAsState()
                 ExplorarScreen(
                     estado = estado,
                     onTipo = mainViewModel::seleccionarTipo,
@@ -121,7 +125,10 @@ fun AppNavHost() {
                     onProyecto = onProyecto,
                     onCapacidad = { abrirDetalle(Routes.capacidad(it)) },
                     onIntegrante = { abrirDetalle(Routes.integrante(it)) },
-                    onBack = onBack
+                    onBack = onBack,
+                    preferencias = preferencias,
+                    onRecordarFiltros = mainViewModel::cambiarRecordarFiltros,
+                    onReintentarPreferencias = mainViewModel::reintentarPreferencias
                 )
             }
             composable(Routes.PROYECTO, arguments = listOf(navArgument(Routes.ID) { type = NavType.StringType })) { entry ->

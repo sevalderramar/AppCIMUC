@@ -3,6 +3,9 @@ package com.example.appcimuc.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,9 +26,16 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -34,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.example.appcimuc.R
 import com.example.appcimuc.viewmodel.ExplorarUiState
 import com.example.appcimuc.viewmodel.TipoContenido
+import com.example.appcimuc.viewmodel.PreferenciasFiltrosUiState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -47,10 +58,14 @@ fun ExplorarScreen(
     onProyecto: (String) -> Unit,
     onCapacidad: (String) -> Unit,
     onIntegrante: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    preferencias: PreferenciasFiltrosUiState = PreferenciasFiltrosUiState(),
+    onRecordarFiltros: (Boolean) -> Unit = {},
+    onReintentarPreferencias: () -> Unit = {}
 ) {
     // rememberLazyGridState utiliza Saver: una posición independiente por tipo, restaurable
     // en la entrada de Navigation al regresar de detalle, cambiar de pestaña o rotar.
+    // El Saver solo registra índice/offset, no listas; no duplicamos esos valores en el VM.
     val proyectosScroll = rememberLazyGridState()
     val capacidadesScroll = rememberLazyGridState()
     val integrantesScroll = rememberLazyGridState()
@@ -88,7 +103,10 @@ fun ExplorarScreen(
                         onBuscar = { onBuscar(it); reiniciarPosicion() },
                         onCategoria = { ocultarTeclado(); onCategoria(it); reiniciarPosicion() },
                         onAnio = { ocultarTeclado(); onAnio(it); reiniciarPosicion() },
-                        onLimpiar = { ocultarTeclado(); onLimpiar(); reiniciarPosicion() }
+                        onLimpiar = { ocultarTeclado(); onLimpiar(); reiniciarPosicion() },
+                        preferencias = preferencias,
+                        onRecordarFiltros = onRecordarFiltros,
+                        onReintentarPreferencias = onReintentarPreferencias
                     )
                 }
                 if (estado.cantidadResultados == 0) {
@@ -98,6 +116,7 @@ fun ExplorarScreen(
                                 else "No encontramos coincidencias. Prueba con otra búsqueda o limpia los filtros.")
                             if (!estado.catalogoVacio) {
                                 OutlinedButton(onClick = { ocultarTeclado(); onLimpiar(); reiniciarPosicion() },
+                                    enabled = estado.tipo != TipoContenido.PROYECTOS || !preferencias.guardando,
                                     modifier = Modifier.heightIn(min = 48.dp)) {
                                     Text("Limpiar búsqueda y filtros")
                                 }
@@ -130,7 +149,9 @@ fun ExplorarScreen(
 @Composable
 private fun ControlesExplorar(
     estado: ExplorarUiState, onTipo: (TipoContenido) -> Unit, onBuscar: (String) -> Unit,
-    onCategoria: (String?) -> Unit, onAnio: (Int?) -> Unit, onLimpiar: () -> Unit
+    onCategoria: (String?) -> Unit, onAnio: (Int?) -> Unit, onLimpiar: () -> Unit,
+    preferencias: PreferenciasFiltrosUiState,
+    onRecordarFiltros: (Boolean) -> Unit, onReintentarPreferencias: () -> Unit
 ) {
     val teclado = LocalSoftwareKeyboardController.current
     val foco = LocalFocusManager.current
@@ -162,22 +183,27 @@ private fun ControlesExplorar(
             keyboardActions = KeyboardActions(onSearch = { teclado?.hide(); foco.clearFocus() })
         )
         if (estado.tipo == TipoContenido.PROYECTOS) {
+            PreferenciaRecordarFiltros(preferencias, onRecordarFiltros, onReintentarPreferencias)
             Text("Categoría", style = MaterialTheme.typography.labelLarge)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OpcionExplorar("Todos", estado.categoriaId == null) { onCategoria(null) }
+                OpcionExplorar("Todos", estado.categoriaId == null, enabled = !preferencias.guardando) { onCategoria(null) }
                 estado.categorias.forEach { categoria ->
-                    OpcionExplorar(categoria.nombre, estado.categoriaId == categoria.id) { onCategoria(categoria.id) }
+                    OpcionExplorar(categoria.nombre, estado.categoriaId == categoria.id,
+                        enabled = !preferencias.guardando) { onCategoria(categoria.id) }
                 }
             }
             Text("Año", style = MaterialTheme.typography.labelLarge)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OpcionExplorar("Todos", estado.anio == null) { onAnio(null) }
-                estado.anios.forEach { anio -> OpcionExplorar(anio.toString(), estado.anio == anio) { onAnio(anio) } }
+                OpcionExplorar("Todos", estado.anio == null, enabled = !preferencias.guardando) { onAnio(null) }
+                estado.anios.forEach { anio ->
+                    OpcionExplorar(anio.toString(), estado.anio == anio, enabled = !preferencias.guardando) { onAnio(anio) }
+                }
             }
         }
         Text("${estado.cantidadResultados} ${if (estado.cantidadResultados == 1) "resultado" else "resultados"}",
             style = MaterialTheme.typography.titleMedium)
-        OutlinedButton(onClick = onLimpiar, enabled = estado.tieneBusquedaOFiltros,
+        OutlinedButton(onClick = onLimpiar, enabled = estado.tieneBusquedaOFiltros &&
+            (estado.tipo != TipoContenido.PROYECTOS || !preferencias.guardando),
             modifier = Modifier.heightIn(min = 48.dp), shape = MaterialTheme.shapes.small) {
             Text("Limpiar búsqueda y filtros")
         }
@@ -185,11 +211,42 @@ private fun ControlesExplorar(
 }
 
 @Composable
-private fun OpcionExplorar(texto: String, seleccionado: Boolean, onClick: () -> Unit) {
-    FilterChip(selected = seleccionado, onClick = onClick,
+private fun OpcionExplorar(texto: String, seleccionado: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
+    FilterChip(selected = seleccionado, onClick = onClick, enabled = enabled,
         modifier = Modifier.heightIn(min = 48.dp), shape = MaterialTheme.shapes.small,
         label = { Text(texto) }, colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.primary,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
         ))
+}
+
+@Composable
+private fun PreferenciaRecordarFiltros(
+    estado: PreferenciasFiltrosUiState, onRecordar: (Boolean) -> Unit, onReintentar: () -> Unit
+) {
+    val habilitado = estado.disponible && !estado.cargando && !estado.guardando
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .toggleable(value = estado.recordar, enabled = habilitado, role = Role.Switch, onValueChange = onRecordar)
+            .padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Recordar filtros de proyectos", style = MaterialTheme.typography.labelLarge)
+                Text("Recuerda solo categoría y año. No guarda la búsqueda.", style = MaterialTheme.typography.bodySmall)
+            }
+            Switch(checked = estado.recordar, onCheckedChange = null, enabled = habilitado)
+        }
+        if (estado.cargando || estado.guardando) {
+            Text(if (estado.cargando) "Cargando preferencia…" else "Guardando cambios…",
+                style = MaterialTheme.typography.bodySmall, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+        }
+        estado.error?.let { error ->
+            Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+            TextButton(onClick = onReintentar, enabled = !estado.cargando && !estado.guardando,
+                modifier = Modifier.heightIn(min = 48.dp)) {
+                Text("Reintentar preferencias")
+            }
+        }
+    }
 }
