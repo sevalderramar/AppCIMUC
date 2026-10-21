@@ -322,3 +322,23 @@ java --class-path "app/build/tmp/kotlin-classes/debug;$stdlib;$rjar" docs/valida
 Repositorio entrega proyecto/relaciones/recursos por ID → ViewModel publica estado en memoria → UI muestra ficha y formulario compartido → validación local conserva errores o cambia una sola vez a confirmación → Entendido/cerrar limpia el borrador sin salir del proyecto. Los documentos de demostración se leen desde la APK. Ninguna operación envía correos, registra postulantes ni cambia cupos.
 
 Mensaje de commit sugerido (no ejecutado): `Completa recursos de ficha y adapta formularios de participación simulada`.
+
+## Auditoría del MVP actual — 2026-10-21
+
+### Realizado
+- Revisión del código real, AGENTS, documentación, Gradle, cuatro DOCX y modelo del equipo, con Git inicialmente limpio. No se encontró un fallo de lógica en los casos ejecutados que justificara cambiar producción: se conservan pantallas, diseño, modelos/datos, recursos, ViewModels, repositorio, navegación y versiones. No se implementó DataStore ni se avanzó de etapa.
+- Creado `docs/validacion/mvp/MvpChecks.java`: cobertura reproducible de búsqueda/filtros, consultas independientes, vacíos, validación y transiciones de contacto. Ampliado `docs/validacion/historia2/Historia2Checks.java` con seis casos de participación (campos/tipos ajenos, formulario cerrado, aporte sin cupos, fuente URL opcional y borrador nuevo vacío). Sin framework/dependencia nueva.
+- La **tabla completa requisito → archivo → implementado → verificado → pendiente**, fuentes, bloqueos, comandos reproducibles y ocho pruebas manuales están en [Auditoría del MVP](docs/validacion/mvp/Auditoria.md). Los registros anteriores se conservan como historial; las funciones no se dieron por existentes por aparecer mencionadas allí.
+
+### Comprobado
+- `assembleDebug`, `lintDebug`, `testDebugUnitTest`: **BUILD SUCCESSFUL**. Lint: **0 errores / 8 advertencias existentes**. UnitTest: **NO-SOURCE**, no una suite integrada aprobada.
+- Harness guardados en el proyecto: **58 comprobaciones JVM** de exploración/contacto y **86** de historia 2/participación/recursos, todas correctas. Reejecutados también los temporales anteriores: 51 participación, 29 detalle, 31 contacto y 17 filtrado, correctos; hay casos superpuestos, no pruebas UI.
+- Código: callbacks en pantallas, validación/filtrado/transiciones fuera de composables, repositorio con relaciones, StateFlow readonly y mutable privado. Propietarios revisados: MainVM Activity compartido; ContactoVM de una entrada para Formulario/Resumen/Resultado; ParticipacionVM por detalle. Preservación de borradores por rotación implementada, no acreditada por una prueba real de lifecycle.
+- Manifiesto fusionado sin permiso INTERNET y sin mecanismos de envío/correo en código. Hashes de las fuentes locales coinciden con el registro de procedencia. Diff revisado sin eliminaciones inesperadas y `git diff --check` sin errores; sin commits/push.
+- Hubo teléfono conectado: `adb install -r` **Success** y lanzamiento de MainActivity. Solo se obtuvo una jerarquía accesible parcial del formulario de postulación; el teléfono cambió de aplicación y se detuvo la interacción. **No se aprobó ningún caso completo de interacción ni comparación visual en esta auditoría.** No se cambiaron ajustes del teléfono ni se enviaron datos.
+
+### Bloqueos y pendientes
+- No están en esta copia los materiales docentes/rúbricas de semanas 6, 7 y 8 ni README docente. Los DOCX del equipo se leyeron como historias/propuestas del equipo, **no como guías curriculares**. No se puede certificar cumplimiento de cada semana ni inventar sus faltantes.
+- Continúan ausentes `.make`, insignia original y fotografías de proyectos; las fuentes TTF y recursos de demostración sí existen y se conservan. No se declara recuperación de recursos de Figma que no están disponibles ni fidelidad completa a su diseño.
+- Ejecutar los ocho casos de [prueba manual](docs/validacion/mvp/Auditoria.md#pruebas-manuales-pendientes-en-celular): búsqueda/filtros, regreso y posición, recursos/relaciones, Contacto/Resumen/Editar, postulación, aporte, cierre/rotación y teclado/fuente ampliada/horizontal. Detener la prueba si otra app está al frente.
+- Mensaje de commit sugerido, no ejecutado: `Documenta auditoría del MVP y amplía comprobaciones de lógica`.

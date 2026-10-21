@@ -109,6 +109,18 @@ class Historia2Checks {
             TipoParticipacion.APORTE).getModal() == ModalParticipacion.EXITO_APORTE, "fuente opcional");
         var post = ParticipacionUiStateKt.abrirParticipacion(initial(p), TipoParticipacion.POSTULACION);
         check(change(post, TipoParticipacion.APORTE, CampoParticipacion.NOMBRE, "Ajeno") == post, "estados separados");
+        check(change(post, TipoParticipacion.POSTULACION, CampoParticipacion.FUENTE, "Ajeno") == post, "campo ajeno ignorado");
+        check(ParticipacionUiStateKt.enviarParticipacion(post, TipoParticipacion.APORTE) == post, "no envía otro tipo");
+        var closed = initial(p);
+        check(ParticipacionUiStateKt.enviarParticipacion(closed, TipoParticipacion.POSTULACION) == closed,
+            "cerrado no puede enviarse");
+        var closedProject = ParticipacionUiStateKt.abrirParticipacion(initial(repo.getProyecto("proy-reciclaje")), TipoParticipacion.APORTE);
+        check(closedProject.getModal() == ModalParticipacion.APORTE, "sin cupos sí permite aporte");
+        var urlSource = ParticipacionUiStateKt.enviarParticipacion(fill(aporte, TipoParticipacion.APORTE,
+            "demo@example.test", "https://example.test/referencia"), TipoParticipacion.APORTE);
+        check(urlSource.getModal() == ModalParticipacion.EXITO_APORTE, "fuente URL también permitida sin abrirla");
+        var sameIdDifferentDraft = ParticipacionUiStateKt.abrirParticipacion(initial(p), TipoParticipacion.POSTULACION);
+        check(sameIdDifferentDraft.getPostulacion().getValores().isEmpty(), "nuevo estado no hereda datos personales");
         check(ParticipacionUiStateKt.abrirParticipacion(initial(null), TipoParticipacion.APORTE).getModal()
             == ModalParticipacion.CERRADO, "proyecto inexistente no abre");
         try (var apk = new ZipFile("app/build/outputs/apk/debug/app-debug.apk")) {
