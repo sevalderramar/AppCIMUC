@@ -17,3 +17,10 @@ app/build
 .gradle/
 .kotlin/
 local.properties
+
+# Archivos de trabajo personal
+/AGENTS.md
+/DevLog.md
+/Avance proyecto CIM UC/
+/docs/diseno/
+*.make
